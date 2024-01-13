@@ -7,6 +7,7 @@ type routeType = {
     "Camera/CameraTest": {};
     "Calendar/CalendarDetailModal": {date: string, scheduleList: {key: string,description: string,color: string,time: string}[]};
     "Calendar/MutateShedule": {date: string};
+    "Calendar/SelectCalendarModal": {}
 } 
 
 type tabRouteType = 

@@ -1,6 +1,7 @@
 import {
   DeviceEventEmitter,
   FlatList,
+  ScrollView,
   StyleSheet,
 } from "react-native";
 import colors from "../../styles/colors";
@@ -15,6 +16,7 @@ import ProfileListItem from "../../components/profile/ProfileListItem";
 import { useQuery } from "@tanstack/react-query";
 import { API_healthCheck } from "../../controller/api";
 import { useFocusEffect } from "expo-router";
+import { Text } from "react-native";
 
 function Home() {
   const flatListRef = useRef<any>(null);
@@ -56,15 +58,25 @@ function Home() {
   //   console.log(healthCheck.data?.data.data)
   // },[healthCheck.data?.data.data]);
 
-
+  let dummy = [1,2,3,4,5,6,7,8,10,10];
   return (
     <RenderSafeAreaView>
       <View style={styles.mainContainer}>
-        <CommonText
+
+        <View style={{ width: "100%",backgroundColor: "red", gap: 20, flexDirection: "row", flexWrap: "wrap"}} >
+          {
+            dummy.map(data => <View key={data} style={{backgroundColor: "green",minWidth: "50%", height: 200}} >
+              <Text style={{width: "100%"}} >{data}</Text>
+            </View>)
+          }
+        </View>
+
+
+        {/* <CommonText
           text={"준비중"}
           color={colors.gray.GR800}
           type="Title1B24"
-         /> 
+         />  */}
         {/* <FlatList
           ref={flatListRef}
           style={styles.flatListContainer}

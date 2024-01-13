@@ -23,10 +23,13 @@ import DynamicCalendar from "../../components/calelndar/DynamicCalendar";
 import AgendaScreen from "../../components/calelndar/AgendaScreen";
 import BtnXLarge from "../../components/button/BtnXLarge";
 import hashStringToRGB from "../../modules/rgb/hashStringToRGB";
+import CommonText from "../../components/text/CommonText";
 function Calendar() {
   const [searchText, setSearchText] = useState<string>("");
   const [moveKeyDate, setMoveKeyDate] = useState(moment().format("YYYY-MM-DD"));
   const [isFocusOnInput, setIsFocusOnInput] = useState(false);
+  const [calendarList,setCalendarList] = useState(["캘린더1","캘린더2","캘린더3","캘린더4"]);
+  const [currentCalendar,setCurrentCalendar] = useState(calendarList[0]);
   const healthCheckParams = { dummy: "Test1" };
   const healthCheck = useQuery({
     queryKey: ["API_healthCheck", "Interest"],
@@ -61,6 +64,10 @@ function Calendar() {
 
     return searchResults;
   };
+
+  const handleFilter = () => {
+    router.navigate({pathname: "Calendar/SelectCalendarModal", params: { } as routeType["Calendar/SelectCalendarModal"] })
+  }
 
   const markedDates: {
     [key: string]: {
@@ -229,15 +236,7 @@ function Calendar() {
     },
   };
 
-  // useEffect(()=>{
-  //   DeviceEventEmitter.addListener("scrollUp",({tabName}) => {
-  //     if(tabName==="Calendar"){
-  //       flatListRef?.current?.scrollToOffset({ animated: true, offset: 0 })
-  //     }
-  //   })
-  // },[]);
   const handleOpeDetailModal = (date: string) => {
-    // console.log(markedDates[date]?.dots[0],"dot",{key: "1",color: "red",description: "hi",time: "2022-12-24"})
     router.navigate({
       pathname: "Calendar/CalendarDetailModal",
       params: {
@@ -301,43 +300,10 @@ function Calendar() {
             moveKeyDate={moveKeyDate}
             setMoveKeyDate={setMoveKeyDate}
             handleClick={handleOpeDetailModal}
+            currentCalendar={currentCalendar}
+            handleFilter={handleFilter}
           />
         </View>
-        {/* <FlatList
-          style={{flex: 1, width: "100%"}}
-          scrollEnabled={false}
-          data={[
-            <View style={{flex: 1, height: "100%"}} ><Text>Hi</Text></View>
-            ,
-            <DynamicCalendar
-              markedDates={markedDates}
-              moveKeyDate={moveKeyDate}
-              setMoveKeyDate={setMoveKeyDate}
-              handleClick={handleOpeDetailModal}
-            />
-          ]}
-          renderItem={({item}) => item}
-        /> */}
-        {/* <View style={{flex: 1,width: "100%"}} >
-          
-        </View> */}
-        {/* <BtnXLarge active={true} type="SolidHigh" text={"test"} action={()=>{
-          setMoveKeyDate("2024-01-02")
-        }} /> */}
-        {/* <FlatList
-          bounces={false}
-          scrollEnabled
-          // stickyHeaderIndices={[0]}
-          style={{ flex: 1,width: "100%" }}
-          data={[
-            <DynamicCalendar
-              moveKeyDate={moveKeyDate}
-              setMoveKeyDate={setMoveKeyDate}
-              handleClick={handleOpeDetailModal}
-            />,
-          ]}
-          renderItem={({ item }) => item}
-        /> */}
       </View>
     </RenderSafeAreaView>
   );

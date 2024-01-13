@@ -90,6 +90,8 @@ function RootLayoutNav() {
       <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       <Stack.Screen name="Calendar/CalendarDetailModal" options={{ headerShown: false,presentation: "formSheet"}} />
       <Stack.Screen name="Calendar/MutateShedule" options={{  title: "일정 추가" ,headerShown: true, presentation: "formSheet"}} />
+      <Stack.Screen name="Calendar/SelectCalendarModal" options={{  headerShown: false, presentation: "formSheet"}} />
+      
     </Stack>
   );
 }

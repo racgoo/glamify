@@ -23,18 +23,25 @@ import CommonText from "../text/CommonText";
 import hashStringToRGB from "../../modules/rgb/hashStringToRGB";
 import Spinner from "../../assets/animation/Spinner";
 import { DayProps } from "react-native-calendars/src/calendar/day";
+import Filter from "../../assets/icons/filter/Filter";
+import router from "../../references/router";
 
 interface DynamicCalendarProps {
   handleClick: (date: string) => void;
   moveKeyDate: string;
   setMoveKeyDate: (newKey: string) => void;
   markedDates: {[key: string]: {dots: {key: string; color: string; description: string; time: string;}[], marked: boolean}}
+  currentCalendar?: string;
+  calendarList?: string[]
+  handleFilter?: ()=>void;
 }
 const DynamicCalendar = ({
   handleClick,
   moveKeyDate,
   setMoveKeyDate,
-  markedDates
+  markedDates,
+  currentCalendar,
+  handleFilter
 }: DynamicCalendarProps) => {
   const flatListRef = useRef<FlatList>(null);
   const calendarListRef = useRef<any>(null);
@@ -124,7 +131,7 @@ const DynamicCalendar = ({
         ref={flatListRef}
         data={[
           <View style={{ alignItems: "center", justifyContent: "center" }}>
-            <View style={{ width: "100%", paddingHorizontal: 20 }}>
+            <View style={{ flexDirection: "row",alignItems: "center",justifyContent: "space-between",width: "100%", paddingHorizontal: 20 }}>
               <CommonText
                 text={moment(monthData).format("YYYY년 MM월")}
                 color={colors.gray.GR800}
@@ -132,6 +139,18 @@ const DynamicCalendar = ({
                 marginBottom={20}
                 marginTop={20}
               />
+              <TouchableOpacity 
+                style={{flexDirection: "row", alignItems: "center"}} 
+                onPress={handleFilter}
+              >
+                <Filter />
+                <CommonText 
+                  text={currentCalendar ?? ""}
+                  color={colors.gray.GR900}
+                  type="Body1S16"
+                  marginLeft={4}
+                />
+              </TouchableOpacity>
             </View>
             <View
               style={{
