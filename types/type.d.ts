@@ -7,7 +7,8 @@ type routeType = {
     "Camera/CameraTest": {};
     "Calendar/CalendarDetailModal": {date: string, scheduleList: {key: string,description: string,color: string,time: string}[]};
     "Calendar/MutateShedule": {date: string};
-    "Calendar/SelectCalendarModal": {}
+    "Calendar/SelectCalendarModal": {};
+    "Calendar/CreateCalendarModal": {};
 } 
 
 type tabRouteType = 
@@ -17,3 +18,11 @@ type tabRouteType =
 "Chat" |
 "Setting";
  
+type calendarType = {
+    user_id: number;
+    calendar_id: number;
+    title: string;
+    description: string;
+    register_date: string;
+    update_date: string;
+};

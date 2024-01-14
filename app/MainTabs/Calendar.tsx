@@ -12,7 +12,7 @@ import {
 import RenderSafeAreaView from "../../components/layout/RenderSafeAreaView";
 import router from "../../references/router";
 import { View } from "react-native";
-import { API_healthCheck } from "../../controller/api";
+import { API_getCalendarList, API_healthCheck } from "../../controller/api";
 import { useQuery } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useState } from "react";
 import { useFocusEffect } from "expo-router";
@@ -24,22 +24,38 @@ import AgendaScreen from "../../components/calelndar/AgendaScreen";
 import BtnXLarge from "../../components/button/BtnXLarge";
 import hashStringToRGB from "../../modules/rgb/hashStringToRGB";
 import CommonText from "../../components/text/CommonText";
+import requestLoadingOpen from "../../action/loading/requestLoadingOpen";
 function Calendar() {
   const [searchText, setSearchText] = useState<string>("");
   const [moveKeyDate, setMoveKeyDate] = useState(moment().format("YYYY-MM-DD"));
   const [isFocusOnInput, setIsFocusOnInput] = useState(false);
   const [calendarList,setCalendarList] = useState(["캘린더1","캘린더2","캘린더3","캘린더4"]);
   const [currentCalendar,setCurrentCalendar] = useState(calendarList[0]);
+
   const healthCheckParams = { dummy: "Test1" };
-  const healthCheck = useQuery({
+  const healthCheckQuery = useQuery({
     queryKey: ["API_healthCheck", "Interest"],
     queryFn: () => API_healthCheck(healthCheckParams),
   });
 
+  const getCalendarListQuery = useQuery({
+    queryKey: ["API_getCalendarList"],
+    queryFn: () => API_getCalendarList({}),
+  });
+  const isCalenderListLoading = getCalendarListQuery.isLoading;
+  const calenderListData =  getCalendarListQuery.data;
+  
+  useEffect(()=>{
+    if(isCalenderListLoading){
+      requestLoadingOpen();
+    }
+  },[isCalenderListLoading]);
+
   useFocusEffect(
     useCallback(() => {
-      healthCheck.refetch();
-    }, [JSON.stringify(healthCheckParams)])
+      healthCheckQuery.refetch();
+      getCalendarListQuery.refetch();
+    }, [JSON.stringify({...healthCheckParams})])
   );
 
   const filterMarkedDates = (text: string) => {
@@ -242,11 +258,28 @@ function Calendar() {
       params: {
         date,
         scheduleList: markedDates[date]?.dots,
-        // scheduleList:  markedDates[date]?.dots.map(d=>({key: d.key, description: d.description, time: d.time}))
-        // scheduleList: markedDates[date]?.dots,
       } as routeType["Calendar/CalendarDetailModal"],
     });
   };
+
+  const handleNewCalendar = () => {
+    router.navigate({pathname: "Calendar/CreateCalendarModal"});
+  }
+
+  if(isCalenderListLoading)return null;
+
+  if(calenderListData?.data.data?.calendarList.length===0)return (
+    <RenderSafeAreaView isNeedTouchableWithoutFeedback >
+      <View style={[styles.container,{ paddingHorizontal: 20, justifyContent: "center" }]}>
+        <BtnXLarge 
+          active={true}
+          type="SolidHigh"
+          action={handleNewCalendar}
+          text={"새로운 캘린더 만들러 가기"}
+        />
+      </View> 
+    </RenderSafeAreaView>
+  )
 
   return (
     <RenderSafeAreaView isNeedTouchableWithoutFeedback >
@@ -277,11 +310,12 @@ function Calendar() {
           }}
         >
           {Object.entries(filterMarkedDates(searchText)).map(([key, value]) => (
-            <View>
+            <View key={key} >
               <Text>{key}</Text>
               <View style={{ alignItems: "flex-end" }}>
-                {value.dots.map((item) => (
+                {value.dots.map((item,index) => (
                   <TouchableOpacity
+                    key={index}
                     style={{borderWidth: 2}}
                     onPress={() => {
                       handleOpeDetailModal(key);

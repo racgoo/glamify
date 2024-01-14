@@ -63,20 +63,20 @@ function Home() {
     <RenderSafeAreaView>
       <View style={styles.mainContainer}>
 
-        <View style={{ width: "100%",backgroundColor: "red", gap: 20, flexDirection: "row", flexWrap: "wrap"}} >
+        {/* <View style={{ width: "100%",backgroundColor: "red", gap: 20, flexDirection: "row", flexWrap: "wrap"}} >
           {
-            dummy.map(data => <View key={data} style={{backgroundColor: "green",minWidth: "50%", height: 200}} >
-              <Text style={{width: "100%"}} >{data}</Text>
+            dummy.map((data,index) => <View key={index} style={{backgroundColor: "green",minWidth: "50%", height: 200}} >
+              <Text style={{width: "100%"}} key="" >{data}</Text>
             </View>)
           }
-        </View>
+        </View> */}
 
 
-        {/* <CommonText
+        <CommonText
           text={"준비중"}
           color={colors.gray.GR800}
           type="Title1B24"
-         />  */}
+         /> 
         {/* <FlatList
           ref={flatListRef}
           style={styles.flatListContainer}

@@ -1,14 +1,16 @@
 import { useEffect } from "react";
 import router from "../references/router";
-import { View, Text, Pressable, LogBox, ImageBackground } from "react-native";
+import { View, Text, Pressable, LogBox, ImageBackground, YellowBox } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import requestAuthByRefreshToken from "../action/auth/requestAuthByRefreshToken";
 import moment from "moment";
 import colors from "../styles/colors";
 import CommonText from "../components/text/CommonText";
 
-LogBox.ignoreAllLogs();
-LogBox.ignoreLogs(["Warning: ..."]);
+LogBox.ignoreAllLogs(true);
+LogBox.ignoreLogs(["..."]);
+
+
 const FirstPage = () => {
 
   const handleStart = (type: "login" | "home") => {

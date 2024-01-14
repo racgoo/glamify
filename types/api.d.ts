@@ -60,3 +60,28 @@ export type API_authByRefreshToken_response_type = defaultApiResponseType<{
     access_token: string
     refresh_token: string
 }>
+
+export interface API_getCalendarList_request_type extends defaultApiRequestType {}
+
+export type API_getCalendarList_response_type = defaultApiResponseType<{
+    calendarList: {
+        user_id: number
+        calendar_id: number
+        title: string
+        description: string
+        register_date: string
+        update_date: string
+    }[]
+}>
+
+export interface API_createCalendar_request_type extends defaultApiRequestType {
+    calendarName: string
+}
+
+export type API_createCalendar_response_type = defaultApiResponseType<{}>
+
+export interface API_deleteCalendar_request_type extends defaultApiRequestType {
+    calendar_id: number
+}
+
+export type API_deleteCalendar_response_type = defaultApiResponseType<{}>

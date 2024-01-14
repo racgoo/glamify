@@ -38,6 +38,8 @@ interface commonTextProps extends TextStyle {
   onFocus?: () => void;
   onBlur?: () => void;
   placeholderTextColor?: string;
+  autoFocus?: boolean;
+  deleteButtonOffset?: number;
 }
 
 const CommonTextInput = ({
@@ -60,6 +62,8 @@ const CommonTextInput = ({
   placeholderTextColor,
   onFocus,
   onBlur,
+  autoFocus = false,
+  deleteButtonOffset = 4,
   ...props
 }: commonTextProps) => {
   return (
@@ -89,6 +93,7 @@ const CommonTextInput = ({
           onFocus={onFocus}
           onBlur={onBlur}
           multiline={multiline}
+          autoFocus={autoFocus}
           onChangeText={(text) => {
             setText(text);
           }}
@@ -96,7 +101,8 @@ const CommonTextInput = ({
         {text!=="" && 
         <Pressable 
           onPress={()=>setText("")}
-          style={{position: "absolute",width: 20, height: 20, right: -4}} 
+          style={{position: "absolute",width: 20, height: 20, right: deleteButtonOffset}} 
+          hitSlop={{top: 3,right:3,bottom:3,left:3 }}
         >
           <TextDeleteIcon />
         </Pressable>
