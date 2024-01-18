@@ -5,7 +5,7 @@ import moment from "moment";
  * @param {moment} momentObject 사용중인 moment 객체 
  * @returns {string} moment객체의 UTC를 YYYY-MM-DD HH:mm:ss 형식으로 반환
 */
-const momentToUtc = ( momentObject: moment.Moment ) => {
+const momentToUtcString = ( momentObject: moment.Moment ) => {
     return momentObject.utc().format('YYYY-MM-DD HH:mm:ss')
 }
-export default momentToUtc;
+export default momentToUtcString;

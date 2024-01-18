@@ -9,10 +9,16 @@ import {
   API_authByRefreshToken_response_type,
   API_createCalendar_request_type,
   API_createCalendar_response_type,
+  API_createSchedule_request_type,
+  API_createSchedule_response_type,
   API_deleteCalendar_request_type,
   API_deleteCalendar_response_type,
+  API_deleteSchedule_request_type,
+  API_deleteSchedule_response_type,
   API_getCalendarList_request_type,
   API_getCalendarList_response_type,
+  API_getSchedule_request_type,
+  API_getSchedule_response_type,
   API_healthCheck_request_type,
   API_healthCheck_response_type,
   API_kakaoLoginVerify_request_type,
@@ -24,8 +30,9 @@ import requestLogout from "../action/auth/requestLogout";
 import requestAuthByRefreshToken from "../action/auth/requestAuthByRefreshToken";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import requestLoadingOpen from "../action/loading/requestLoadingOpen";
-export const backendUrl = "http://dating.batro.org:4000/";
+// export const backendUrl = "http://dating.batro.org:4000/";
 // export const backendUrl = "http://172.20.10.2:4000/";
+export const backendUrl = "http://192.168.35.7:4000/";
 
 // export const backendUrl = "http://192.168.35.7:4000/";
 
@@ -98,11 +105,11 @@ const responseMiddleware = async (response: AxiosResponse) => {
 
 customAxios.interceptors.response.use(
   (response) => {
-    requestLoadingClose();
+    // requestLoadingClose();
     return responseMiddleware(response);
   },
   (error) => {
-    requestLoadingClose();
+    // requestLoadingClose();
     requestPopupOpen({
       title: "오류가 발생했습니다.\n다시 시도해 주세요.",
       description: "",
@@ -166,6 +173,24 @@ export const API_deleteCalendar = (
   data: API_deleteCalendar_request_type
 ): Promise<AxiosResponse<API_deleteCalendar_response_type>> => {
   return postRequest("calendar/deleteCalendar", data,{});
+};
+
+export const API_createSchedule = (
+  data: API_createSchedule_request_type
+): Promise<AxiosResponse<API_createSchedule_response_type>> => {
+  return postRequest("schedule/createSchedule", data,{});
+};
+
+export const API_getSchedule = (
+  data: API_getSchedule_request_type
+): Promise<AxiosResponse<API_getSchedule_response_type>> => {
+  return postRequest("schedule/getSchedule", data,{});
+};
+
+export const API_deleteSchedule = (
+  data: API_deleteSchedule_request_type
+): Promise<AxiosResponse<API_deleteSchedule_response_type>> => {
+  return postRequest("schedule/deleteSchedule", data,{});
 };
 
 

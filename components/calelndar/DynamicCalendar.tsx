@@ -25,28 +25,52 @@ import Spinner from "../../assets/animation/Spinner";
 import { DayProps } from "react-native-calendars/src/calendar/day";
 import Filter from "../../assets/icons/filter/Filter";
 import router from "../../references/router";
+import { useQuery } from "@tanstack/react-query";
+import { API_getSchedule } from "../../controller/api";
+import momentToUtcString from "../../modules/time/momentToUtcString";
+import transformScheduleToMarkData from "../../modules/transformer/transformScheduleToMarkData";
 
 interface DynamicCalendarProps {
   handleClick: (date: string) => void;
   moveKeyDate: string;
   setMoveKeyDate: (newKey: string) => void;
-  markedDates: {[key: string]: {dots: {key: string; color: string; description: string; time: string;}[], marked: boolean}}
-  currentCalendar?: string;
+  // markedDates: {[key: string]: {dots: {key: string; color: string; description: string; time: string;}[], marked: boolean}}
+  currentCalendar: calendarType;
   calendarList?: string[]
-  handleFilter?: ()=>void;
+  handleFilter?: (monthDate: string)=>void;
 }
 const DynamicCalendar = ({
   handleClick,
   moveKeyDate,
   setMoveKeyDate,
-  markedDates,
   currentCalendar,
-  handleFilter
+  handleFilter = () => {}
 }: DynamicCalendarProps) => {
   const flatListRef = useRef<FlatList>(null);
   const calendarListRef = useRef<any>(null);
   const [isReady, setIsReady] = useState(false);
-  const [monthData, setMonthData] = useState(moment().format("YYYY-MM-DD"));
+  const [monthDate, setmonthDate] = useState(moment().format("YYYY-MM-DD"));
+  const [markedDates,setMarkedDates] = useState<markType>({});
+  const getScheduleQuery = useQuery({
+    queryKey: ["API_getSchedule",currentCalendar.calendar_id],
+    queryFn: () => API_getSchedule({
+      calendar_id: currentCalendar.calendar_id,
+      target_date: momentToUtcString(moment(monthDate))
+    }),
+  });
+
+  useEffect(()=>{
+    getScheduleQuery.refetch();
+  },[monthDate,currentCalendar]);
+  const isScheduleLoading = getScheduleQuery.isLoading;
+  const scheduleResult =  getScheduleQuery.data?.data;
+
+  useEffect(()=>{
+    if(scheduleResult?.data?.scheduleList){
+      setMarkedDates(transformScheduleToMarkData(scheduleResult?.data?.scheduleList));
+    }
+  },[scheduleResult?.data?.scheduleList]);
+
 
   LocaleConfig.locales["kr"] = {
     monthNames: new Array(12).fill(null).map((_, index) => `${index + 1}월`),
@@ -133,7 +157,7 @@ const DynamicCalendar = ({
           <View style={{ alignItems: "center", justifyContent: "center" }}>
             <View style={{ flexDirection: "row",alignItems: "center",justifyContent: "space-between",width: "100%", paddingHorizontal: 20 }}>
               <CommonText
-                text={moment(monthData).format("YYYY년 MM월")}
+                text={moment(monthDate).format("YYYY년 MM월")}
                 color={colors.gray.GR800}
                 type="Title1B24"
                 marginBottom={20}
@@ -141,11 +165,11 @@ const DynamicCalendar = ({
               />
               <TouchableOpacity 
                 style={{flexDirection: "row", alignItems: "center"}} 
-                onPress={handleFilter}
+                onPress={()=>{handleFilter(monthDate)}}
               >
                 <Filter />
                 <CommonText 
-                  text={currentCalendar ?? ""}
+                  text={currentCalendar.title ?? ""}
                   color={colors.gray.GR900}
                   type="Body1S16"
                   marginLeft={4}
@@ -187,7 +211,7 @@ const DynamicCalendar = ({
           <CalendarList
             ref={calendarListRef}
             onMonthChange={(event) => {
-              setMonthData(`${event.year}-${event.month}-01`);
+              setmonthDate(`${event.year}-${event.month}-01`);
               flatListRef.current?.scrollToOffset({
                 animated: true,
                 offset: 0,

@@ -11,7 +11,8 @@ import {
 import { SafeAreaView, StyleProp, StyleSheet } from "react-native";
 import colors from "../../styles/colors";
 import Spinner from "../../assets/animation/Spinner";
-
+import OverlayLoadingModule from "../dynamicModules/loading/OverlayLoadingModule";
+import CustomPopupModule from "../dynamicModules/popup/CustomPopupModule";
 interface RenderSafeAreaViewType {
   children?: JSX.Element;
   style?: ViewStyle;
@@ -28,28 +29,33 @@ const RenderSafeAreaView = ({
   let dimensions = Dimensions.get("screen");
   return (
     <SafeAreaView style={[styles.root, style]}>
-      {isLoading && (
-        <View
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-            height: dimensions.height,
-            width: dimensions.width,
-            position: "absolute",
-            zIndex: 10000,
-          }}
-        >
-          <Spinner />
-        </View>
-      )}
+      <Fragment>
 
-      {isNeedTouchableWithoutFeedback ? (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          {children}
-        </TouchableWithoutFeedback>
-      ) : (
-        children
-      )}
+        <OverlayLoadingModule />
+        <CustomPopupModule />
+        {/* {isLoading && (
+          <View
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+              height: dimensions.height,
+              width: dimensions.width,
+              position: "absolute",
+              zIndex: 10000,
+            }}
+          >
+            <Spinner />
+          </View>
+        )} */}
+
+        {isNeedTouchableWithoutFeedback ? (
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            {children}
+          </TouchableWithoutFeedback>
+        ) : (
+          children
+        )}
+      </Fragment>
     </SafeAreaView>
   );
 };

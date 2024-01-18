@@ -11,31 +11,53 @@ import { useEffect, useState } from "react";
 import router from "../../references/router";
 import OverlayLoadingModule from "../../components/dynamicModules/loading/OverlayLoadingModule";
 import requestLoadingOpen from "../../action/loading/requestLoadingOpen";
+import requestLoadingClose from "../../action/loading/requestLoadingClose";
+import requestPopupOpen from "../../action/popup/requestPopupOpen";
+import CalendarItem from "../../components/slider/CalendarItem";
+import { setRecoil } from "recoil-nexus";
+import { calendarAtom, requestSetCalendarItem } from "../../recoil/recoil";
+import setCurrentCalendar from "../../action/calendar/setCurrentCalendar";
+import { useRecoilValue } from "recoil";
 
 const SelectCalendarModal = () => {
-    // const {  } = serializeParams(
-    //     useLocalSearchParams()
-    //   ) as routeType["Calendar/SelectCalendarModal"];
-
+    const calendarRecoilValue = useRecoilValue(calendarAtom);
     const getCalendarListQuery = useQuery({
       queryKey: ["API_getCalendarList"],
-      queryFn: () => API_getCalendarList({})
+      queryFn: () => API_getCalendarList({}),
+      enabled: false
     });
 
-    const isCalenderListLoading = getCalendarListQuery.isLoading;
-    const calenderListResult =  getCalendarListQuery.data?.data;
+    const isCalendarListLoading = getCalendarListQuery.isLoading;
+    const calendarListResult =  getCalendarListQuery.data?.data;
 
-    const [deleteLoading,setDeleteLoading] = useState(false);
+    useEffect(()=>{
+        if(calendarListResult?.data?.calendarList.length===0)router.goBack();
+    },[calendarListResult?.data?.calendarList]);
 
-    const handleDelete = (calendar_id: number) => {
-        setDeleteLoading(true);
-        API_deleteCalendar({calendar_id})
+    const handleDeleteModalOpen = (calendar: calendarType) => {
+        requestPopupOpen(
+            {
+                title: "정말 삭제하겠습니까?",
+                description: "다시 복구하기 어렵습니다.",
+                type: "both",
+                action: ()=> {
+                    handleDelete(calendar)
+                }
+            }
+        );
+    }
+
+    const handleDelete = (calendar: calendarType) => {
+        requestLoadingOpen();
+        API_deleteCalendar({calendar_id: calendar.calendar_id})
         .then(async()=>{
             await getCalendarListQuery.refetch();
-            // router.goBack();
+            if(calendarRecoilValue.currentCalendar?.calendar_id === calendar.calendar_id){
+                setCurrentCalendar(null);
+            }
         })
         .finally(()=>{
-            setDeleteLoading(false);
+            requestLoadingClose();
         })
     }
 
@@ -43,27 +65,29 @@ const SelectCalendarModal = () => {
         router.navigate({pathname: "Calendar/CreateCalendarModal"});
     }
 
-    const renderItem: ListRenderItem<calendarType> = ({item}) => {
-        return <TouchableOpacity style={[styles.calenderCard]} onPress={()=>{handleDelete(item.calendar_id)}} >
-            <CommonText 
-                text={item.title}
-                type="Body1S16"
-                // color={currentCalendar === item ? "red" : colors.blue.Blue600}
-                color={colors.blue.Blue600}
-                
+    const handleSelectButton = (calendar: calendarType) => {
+        setCurrentCalendar(calendar);
+        router.goBack();
+      }
+
+    const renderItem: ListRenderItem<calendarType> = ({item,index}) => {
+        return <CalendarItem 
+                calendar={item}
+                onPress={handleSelectButton}
+                onDelete={handleDeleteModalOpen}
             />
-        </TouchableOpacity>
+            
     }
 
-    if(isCalenderListLoading)return null;
+    if(isCalendarListLoading)return null;
 
-    return <RenderSafeAreaView isLoading={deleteLoading} >
+    return <RenderSafeAreaView >
         <View style={[styles.container]} >
             <FlatList
                 style={[styles.flatListContinaer]}
-                data={calenderListResult?.data?.calendarList}
+                data={calendarListResult?.data?.calendarList}
                 renderItem={renderItem}
-                ItemSeparatorComponent={()=><View style={{height: 20}} />}
+                ItemSeparatorComponent={()=><View style={{height: 4}} />}
             />
             <BtnXLarge
                 active={true}
@@ -89,8 +113,6 @@ const styles = StyleSheet.create({
         width: "100%",
         height: 60,
         backgroundColor: "yellow",
-        paddingHorizontal: 12,
-        paddingTop: 12
     }
 })
 

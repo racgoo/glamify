@@ -29,10 +29,7 @@ const MiddlePopup = ({
         accessibilityViewIsModal
         avoidKeyboard={false}
         useNativeDriverForBackdrop={true}
-        
         // useNativeDriverForBackdrop={Platform.OS === "android"}
-        
-        
     >
         <View style={styles.popupWrapper} >
             <View style={styles.popupContent}>{children}</View>
@@ -48,7 +45,7 @@ const styles = StyleSheet.create({
         padding: 0,
     },  
     popupWrapper: {
-        shadowOpacity: 0.5,
+        shadowOpacity: 0.2,
         flex: 1,
         justifyContent: "center",
         alignItems: "center",

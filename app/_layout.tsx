@@ -11,6 +11,8 @@ import NavigationModule from "../components/dynamicModules/navigation/Navigation
 import CustomPopupModule from "../components/dynamicModules/popup/CustomPopupModule";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import requestLoadingClose from "../action/loading/requestLoadingClose";
+import CommonText from "../components/text/CommonText";
+import colors from "../styles/colors";
 LogBox.ignoreAllLogs(true);
 LogBox.ignoreLogs(["Warning: ..."]);
 
@@ -55,8 +57,6 @@ export default function RootLayout() {
       <RecoilRoot>
         <StatusBar style="dark" />
         <RecoilNexus />
-        <OverlayLoadingModule />
-        <CustomPopupModule />
         <NavigationModule />
         <RootLayoutNav />
       </RecoilRoot>
@@ -89,11 +89,11 @@ function RootLayoutNav() {
         options={{ headerShown: false, presentation: "formSheet" }}
       />
       <Stack.Screen
-        name="Calendar/MutateShedule"
+        name="Schedule/CreateScheduleModal"
         options={{
           title: "일정 추가",
           headerShown: true,
-          presentation: "formSheet",
+          presentation: "formSheet"
         }}
       />
       <Stack.Screen

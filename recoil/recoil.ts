@@ -22,6 +22,10 @@ interface systemAtomProps {
     location: locationProps
 }
 
+interface calendarAtomProps {
+    currentCalendar: null | calendarType 
+}
+
 interface locationProps {
     latitude: null | number;
     longitude: null | number;
@@ -67,7 +71,14 @@ export const systemAtom = atom<systemAtomProps>({
         location: {
             latitude: null,
             longitude: null
-        },
+        }
+    }
+});
+
+export const calendarAtom = atom<calendarAtomProps>({
+    key: 'calendarAtom',
+    default: {
+        currentCalendar: null 
     }
 });
 
@@ -108,6 +119,14 @@ export const requestSetUserItem = selector({
     get: ({ get })=> get(userAtom),
     set: ({ set },userItemObect) => {
         set(userAtom, (prevState) => ({ ...prevState, ...userItemObect }));
+    }
+});
+
+export const requestSetCalendarItem = selector({
+    key: "requestSetCalendarItem",
+    get: ({ get })=> get(calendarAtom),
+    set: ({ set,get },calendarItemObject) => {
+        set(calendarAtom,(prevState) => ({...prevState,...calendarItemObject}));
     }
 });
 

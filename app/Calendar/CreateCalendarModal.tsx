@@ -24,9 +24,11 @@ const CreateCalendarModal = () => {
         setIsLoading(true);
         API_createCalendar({calendarName})
         .then(async(res)=>{
-            //data에 code 200만 필터링됨
-            await getCalendarListQuery.refetch();
-            router.goBack();
+            let { code } = res.data;
+            if(code===200){
+                await getCalendarListQuery.refetch();
+                router.goBack();
+            }
         })
         .finally(()=>{
             setIsLoading(false);

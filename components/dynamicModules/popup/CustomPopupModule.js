@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import MiddlePopup from "./MiddlePopupModule";
-import { View, Text, DeviceEventEmitter } from "react-native";
+import { View, Text, DeviceEventEmitter, StyleSheet } from "react-native";
 import BtnLarge from "../../button/BtnLarge";
 import requestPopupClose from "../../../action/popup/requestPopupClose";
-import dimensions from "../../../styles/dimensions";
+import BtnXlarge from "../../../components/button/BtnXLarge";
+import CommonText from "../../../components/text/CommonText";
+import colors from "../../../styles/colors";
 
 const CustomPopup = () => {
     const [isOpen,setIsOpen] = useState(false);
@@ -11,7 +13,7 @@ const CustomPopup = () => {
     useEffect(()=>{
         DeviceEventEmitter.addListener("popup",(event)=>{
             if(event.type==="open"){
-                setIsOpen(true);
+            setIsOpen(true);
                 setPopupData(event.popupData);
             }
             if(event.type==="close"){
@@ -22,31 +24,42 @@ const CustomPopup = () => {
     },[])
     return <MiddlePopup 
             children={
-                <View style={{backgroundColor: "red",display: "flex", justifyContent: "center", alignItems: "center",paddingHorizontal: 20, paddingVertical: 20,borderRadius: 20}} >
+                <View style={[styles.container]} >
                     {
-                        popupData?.title!=="" && popupData?.title && <Text style={{marginTop: 10}} >{popupData?.title}</Text>
+                        (popupData?.title!=="" && popupData?.title ) &&
+                        <CommonText
+                            text={popupData?.title}
+                            type="Title3B18"
+                            color={colors.gray.GR800}
+                        />
                     }
-                    <Text style={{marginTop: 20,textAlign: "center"}} >{popupData?.description}</Text>
-                    <View style={{marginTop: 20,display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center",gap: 10}} >
+                    <CommonText
+                        style={{marginTop: 12,textAlign: "center"}} 
+                        text={popupData?.description}
+                        type="Body1S16"
+                        color={colors.gray.GR800}
+                    />
+                    <View style={{marginTop: 20,display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center",gap: 10, maxWidth: "100%"}} >
                         {
                             ( popupData?.type === "both" || popupData?.type === "cancel" )
                             &&
-                            <BtnLarge 
+                            <BtnXlarge 
                                 action={requestPopupClose} 
-                                width={ popupData?.type === "both" ? "50%" : 200 } 
+                                style={{flex: 1, flexGrow: 1}}
                                 isHigh={false} 
-                                text="취소"  
+                                text="취소"
+                                type="OutlineHigh"
                             />
                         }
                         {
                             ( popupData?.type === "both" || popupData?.type === "confirm" )
                             &&
-                            <BtnLarge 
+                            <BtnXlarge 
                                 action={()=>{
                                     requestPopupClose();
                                     popupData?.action();
                                 }} 
-                                width={ popupData?.type === "both" ? "50%" : 200 } 
+                                style={{flex: 1, flexGrow: 1}}
                                 isHigh={true} 
                                 text="확인" 
                             />
@@ -57,4 +70,17 @@ const CustomPopup = () => {
             visible={isOpen}
         />
 }
+
+const styles = StyleSheet.create({
+    container: {
+        backgroundColor: "#FFFFFF",
+        display: "flex", 
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 20, 
+        paddingVertical: 20,
+        borderRadius: 20
+    }
+})
+
 export default CustomPopup;

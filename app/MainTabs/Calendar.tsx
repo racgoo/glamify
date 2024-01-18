@@ -12,7 +12,7 @@ import {
 import RenderSafeAreaView from "../../components/layout/RenderSafeAreaView";
 import router from "../../references/router";
 import { View } from "react-native";
-import { API_getCalendarList, API_healthCheck } from "../../controller/api";
+import { API_getCalendarList, API_getSchedule, API_healthCheck } from "../../controller/api";
 import { useQuery } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useState } from "react";
 import { useFocusEffect } from "expo-router";
@@ -25,25 +25,31 @@ import BtnXLarge from "../../components/button/BtnXLarge";
 import hashStringToRGB from "../../modules/rgb/hashStringToRGB";
 import CommonText from "../../components/text/CommonText";
 import requestLoadingOpen from "../../action/loading/requestLoadingOpen";
+import { useRecoilValue } from "recoil";
+import { calendarAtom } from "../../recoil/recoil";
+import setCurrentCalendar from "../../action/calendar/setCurrentCalendar";
 function Calendar() {
   const [searchText, setSearchText] = useState<string>("");
   const [moveKeyDate, setMoveKeyDate] = useState(moment().format("YYYY-MM-DD"));
   const [isFocusOnInput, setIsFocusOnInput] = useState(false);
-  const [calendarList,setCalendarList] = useState(["캘린더1","캘린더2","캘린더3","캘린더4"]);
-  const [currentCalendar,setCurrentCalendar] = useState(calendarList[0]);
-
-  const healthCheckParams = { dummy: "Test1" };
-  const healthCheckQuery = useQuery({
-    queryKey: ["API_healthCheck", "Interest"],
-    queryFn: () => API_healthCheck(healthCheckParams),
-  });
+  const calendarReocilValue = useRecoilValue(calendarAtom);
 
   const getCalendarListQuery = useQuery({
     queryKey: ["API_getCalendarList"],
     queryFn: () => API_getCalendarList({}),
   });
   const isCalenderListLoading = getCalendarListQuery.isLoading;
-  const calenderListData =  getCalendarListQuery.data;
+  const calenderListResult =  getCalendarListQuery.data?.data;
+
+  useEffect(()=>{
+    if(
+      isCalenderListLoading === false &&
+      calenderListResult?.data?.calendarList.length!==0 &&
+      calendarReocilValue.currentCalendar===null
+    ){
+      setCurrentCalendar(calenderListResult?.data?.calendarList[0] as calendarType);
+    }
+  },[calenderListResult?.data?.calendarList])
   
   useEffect(()=>{
     if(isCalenderListLoading){
@@ -53,211 +59,43 @@ function Calendar() {
 
   useFocusEffect(
     useCallback(() => {
-      healthCheckQuery.refetch();
       getCalendarListQuery.refetch();
-    }, [JSON.stringify({...healthCheckParams})])
+    }, [JSON.stringify({...{"dummy": 1}})])
   );
 
   const filterMarkedDates = (text: string) => {
-    const searchResults: {
-      [key: string]: {
-        dots: { key: string; color: string }[];
-        marked: boolean;
-      };
-    } = {};
+    const searchResults= {};
+    // const searchResults: {
+    //   [key: string]: {
+    //     dots: { key: string; color: string }[];
+    //     marked: boolean;
+    //   };
+    // } = {};
 
-    for (const date in markedDates) {
-      if (markedDates[date]) {
-        const dots: any = markedDates[date]?.dots;
-        const filteredDots = dots.filter((dot: any) => dot.key.includes(text));
+    // for (const date in markedDates) {
+    //   if (markedDates[date]) {
+    //     const dots: any = markedDates[date]?.dots;
+    //     const filteredDots = dots.filter((dot: any) => dot.key.includes(text));
 
-        if (filteredDots.length > 0) {
-          // 검색 결과가 있는 경우 해당 날짜의 데이터를 searchResults에 추가
-          searchResults[date] = { dots: filteredDots, marked: true };
-        }
-      }
-    }
+    //     if (filteredDots.length > 0) {
+    //       // 검색 결과가 있는 경우 해당 날짜의 데이터를 searchResults에 추가
+    //       searchResults[date] = { dots: filteredDots, marked: true };
+    //     }
+    //   }
+    // }
 
     return searchResults;
   };
 
-  const handleFilter = () => {
-    router.navigate({pathname: "Calendar/SelectCalendarModal", params: { } as routeType["Calendar/SelectCalendarModal"] })
+  const handleFilter = (monthDate: string) => {
+    router.navigate({pathname: "Calendar/SelectCalendarModal", params: { monthDate } as routeType["Calendar/SelectCalendarModal"] })
   }
-
-  const markedDates: {
-    [key: string]: {
-      dots: { key: string; description: string; time: string; color: string }[];
-      marked: boolean;
-    };
-  } = {
-    "2023-12-02": {
-      dots: [
-        {
-          key: "homeless",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("home22less"),
-        },
-        {
-          key: "homel3ss2",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-      ],
-      marked: true,
-    },
-    "2023-12-05": {
-      dots: [
-        {
-          key: "homeless",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("home22less"),
-        },
-        {
-          key: "homel3ss2",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-      ],
-      marked: true,
-    },
-    "2023-12-03": {
-      dots: [
-        {
-          key: "homeless",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("home22less"),
-        },
-        {
-          key: "homel3ss2",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "homeless",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("home22less"),
-        },
-        {
-          key: "homel3ss2",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-        {
-          key: "vacation",
-          time: moment().format("YYYY-MM-DD"),
-          description: "string",
-          color: hashStringToRGB("vacation"),
-        },
-      ],
-      marked: true,
-    },
-  };
 
   const handleOpeDetailModal = (date: string) => {
     router.navigate({
       pathname: "Calendar/CalendarDetailModal",
       params: {
-        date,
-        scheduleList: markedDates[date]?.dots,
+        date
       } as routeType["Calendar/CalendarDetailModal"],
     });
   };
@@ -266,9 +104,7 @@ function Calendar() {
     router.navigate({pathname: "Calendar/CreateCalendarModal"});
   }
 
-  if(isCalenderListLoading)return null;
-
-  if(calenderListData?.data.data?.calendarList.length===0)return (
+  if(calenderListResult?.data?.calendarList.length===0)return (
     <RenderSafeAreaView isNeedTouchableWithoutFeedback >
       <View style={[styles.container,{ paddingHorizontal: 20, justifyContent: "center" }]}>
         <BtnXLarge 
@@ -282,7 +118,7 @@ function Calendar() {
   )
 
   return (
-    <RenderSafeAreaView isNeedTouchableWithoutFeedback >
+    <RenderSafeAreaView isNeedTouchableWithoutFeedback  >
       <View style={styles.container}>
         <View style={styles.searchBoxContainer}>
           <View style={styles.searchBox}>
@@ -312,7 +148,7 @@ function Calendar() {
           {Object.entries(filterMarkedDates(searchText)).map(([key, value]) => (
             <View key={key} >
               <Text>{key}</Text>
-              <View style={{ alignItems: "flex-end" }}>
+              {/* <View style={{ alignItems: "flex-end" }}>
                 {value.dots.map((item,index) => (
                   <TouchableOpacity
                     key={index}
@@ -324,19 +160,21 @@ function Calendar() {
                     <Text>{item.key}</Text>
                   </TouchableOpacity>
                 ))}
-              </View>
+              </View> */}
             </View>
           ))}
         </View>
         <View style={{ height: isFocusOnInput ? 0 : "auto" }}>
-          <DynamicCalendar
-            markedDates={markedDates}
-            moveKeyDate={moveKeyDate}
-            setMoveKeyDate={setMoveKeyDate}
-            handleClick={handleOpeDetailModal}
-            currentCalendar={currentCalendar}
-            handleFilter={handleFilter}
-          />
+          {
+            calendarReocilValue.currentCalendar &&
+            <DynamicCalendar
+              moveKeyDate={moveKeyDate}
+              setMoveKeyDate={setMoveKeyDate}
+              handleClick={handleOpeDetailModal}
+              currentCalendar={calendarReocilValue.currentCalendar}
+              handleFilter={handleFilter}
+            />
+          }
         </View>
       </View>
     </RenderSafeAreaView>

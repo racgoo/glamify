@@ -9,41 +9,88 @@ import { useRoute } from "@react-navigation/native";
 import serializeParams from "../../modules/params/serializeParams";
 import BtnXLarge from "../../components/button/BtnXLarge";
 import moment from "moment";
+import { useQuery } from "@tanstack/react-query";
+import { API_deleteSchedule, API_getSchedule } from "../../controller/api";
+import momentToUtcString from "../../modules/time/momentToUtcString";
+import { useRecoilValue } from "recoil";
+import { calendarAtom } from "../../recoil/recoil";
+import checkIsSameDay from "../../modules/time/checkIsSameDay";
+import ScheduleItem from "../../components/slider/ScheduleItem";
+import requestPopupOpen from "../../action/popup/requestPopupOpen";
+import requestLoadingClose from "../../action/loading/requestLoadingClose";
 
 const CalendarDetailModal = () => {
-  const { date, scheduleList } = serializeParams(
+  const calendarRecoilValue = useRecoilValue(calendarAtom);
+  const { date } = serializeParams(
     useLocalSearchParams()
   ) as routeType["Calendar/CalendarDetailModal"];
+
   const handlePress = async () => {
     router.navigate({
-      pathname: "Calendar/MutateShedule",
-      params: { date } as routeType["Calendar/MutateShedule"],
+      pathname: "Schedule/CreateScheduleModal",
+      params: { date } as routeType["Schedule/CreateScheduleModal"],
     });
   };
 
-  const renderListItem = (schedule: {
-    key: string;
-    description: string;
-    time: string;
-  }) => {
-    return (
-      <View style={styles.scheduleContainer}>
-        <CommonText
-          text={schedule.key}
-          type="Title1B24"
-          color={colors.gray.GR900}
-        />
-        <CommonText
-          text={schedule.description}
-          type="Body5S14"
-          color={colors.gray.GR700}
-        />
-        <CommonText
-          text={schedule.time}
-          type="Title1B24"
-          color={colors.gray.GR500}
-        />
-      </View>
+  const getScheduleQuery = useQuery({
+    queryKey: ["API_getSchedule",calendarRecoilValue.currentCalendar?.calendar_id],
+    queryFn: () => API_getSchedule({
+      calendar_id: calendarRecoilValue.currentCalendar?.calendar_id as number,
+      target_date: momentToUtcString(moment(date))
+    }),
+    enabled: false
+  });
+  
+  const scheduleResult =  getScheduleQuery.data?.data;
+  const scheduleList = scheduleResult?.data?.scheduleList.filter(schedule => checkIsSameDay(schedule.due_date,moment.utc(date))); 
+  
+  const handleDeleteModalOpen = (schedule: scheduleType) => {
+    requestPopupOpen(
+        {
+            title: "정말 삭제하겠습니까?",
+            description: "다시 복구하기 어렵습니다.",
+            type: "both",
+            action: ()=> {
+              handleDeleteSchedule(schedule)
+            }
+        }
+    );
+  }
+  
+  const handleDeleteSchedule = async (schedule: scheduleType) => {
+    requestLoadingOpen();
+    API_deleteSchedule({schedule_id: schedule.schedule_id})
+    .then(async()=>{
+        await getScheduleQuery.refetch();
+    })
+    .finally(()=>{
+        requestLoadingClose();
+    })
+  }
+
+  const renderListItem = (schedule: scheduleType) => {
+    return ( <ScheduleItem
+        onDelete={handleDeleteModalOpen}
+        onPress={(s: scheduleType)=>{}}
+        schedule={schedule}
+      />
+      // <View style={styles.scheduleContainer}>
+      //   <CommonText
+      //     text={schedule.title}
+      //     type="Title1B24"
+      //     color={colors.gray.GR900}
+      //   />
+      //   <CommonText
+      //     text={schedule.description}
+      //     type="Body5S14"
+      //     color={colors.gray.GR700}
+      //   />
+      //   <CommonText
+      //     text={schedule.due_date}
+      //     type="Title1B24"
+      //     color={colors.gray.GR500}
+      //   />
+      // </View>
     );
   };
 

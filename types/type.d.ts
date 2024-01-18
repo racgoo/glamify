@@ -5,10 +5,10 @@ type routeType = {
     "Login/SocialWebviewScreen": {uri: string};
     "Login/LoginScreen": {};
     "Camera/CameraTest": {};
-    "Calendar/CalendarDetailModal": {date: string, scheduleList: {key: string,description: string,color: string,time: string}[]};
-    "Calendar/MutateShedule": {date: string};
-    "Calendar/SelectCalendarModal": {};
+    "Calendar/CalendarDetailModal": {date: string};
+    "Calendar/SelectCalendarModal": {monthDate: string};
     "Calendar/CreateCalendarModal": {};
+    "Schedule/CreateScheduleModal": {date: string};
 } 
 
 type tabRouteType = 
@@ -26,3 +26,21 @@ type calendarType = {
     register_date: string;
     update_date: string;
 };
+
+type scheduleType = {
+    schedule_id: number
+    user_id: number
+    title: string
+    description: string
+    register_date: string
+    update_date: string
+    due_date: string
+    calendar_id: number
+}
+
+type markType = {
+    [key: string]: {
+      dots: { key: string; description: string; color: string }[];
+      marked: boolean;
+    };
+}
