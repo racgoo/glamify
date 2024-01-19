@@ -56,17 +56,18 @@ const DynamicCalendar = ({
     queryFn: () => API_getSchedule({
       calendar_id: currentCalendar.calendar_id,
       target_date: momentToUtcString(moment(monthDate))
-    }),
+    }).then(res=>res.data),
   });
 
   useEffect(()=>{
     getScheduleQuery.refetch();
   },[monthDate,currentCalendar]);
   const isScheduleLoading = getScheduleQuery.isLoading;
-  const scheduleResult =  getScheduleQuery.data?.data;
+  const scheduleResult =  getScheduleQuery.data;
 
   useEffect(()=>{
     if(scheduleResult?.data?.scheduleList){
+      // console.log(JSON.stringify(scheduleResult.data.scheduleList))
       setMarkedDates(transformScheduleToMarkData(scheduleResult?.data?.scheduleList));
     }
   },[scheduleResult?.data?.scheduleList]);

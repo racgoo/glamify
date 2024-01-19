@@ -26,7 +26,7 @@ import { useQuery } from "@tanstack/react-query";
 import serializeParams from "../../modules/params/serializeParams";
   
   const CreateScheduleModal = () => {
-    const { monthDate } = serializeParams(useLocalSearchParams()) as routeType["Calendar/SelectCalendarModal"];
+    const { date } = serializeParams(useLocalSearchParams()) as routeType["Schedule/CreateScheduleModal"];
     const navigation = useNavigation();
     const calendarRecoilValue = useRecoilValue(calendarAtom);
 
@@ -34,15 +34,15 @@ import serializeParams from "../../modules/params/serializeParams";
       queryKey: ["API_getSchedule",calendarRecoilValue.currentCalendar?.calendar_id],
       queryFn: () => API_getSchedule({
         calendar_id: calendarRecoilValue.currentCalendar?.calendar_id as number,
-        target_date: momentToUtcString(moment.utc(monthDate))
-      }),
+        target_date: momentToUtcString(moment.utc(date))
+      }).then(res=>res.data),
       enabled: false
     });
 
     const [newScheduleTitle, setNewScheduleTitle] = useState("");
     const [newSchedulePlace, setNewSchedulePlace] = useState("");
     const [newScheduleDescription, setNewScheduleDescription] = useState("");
-    const [newScheduleUTCString, setNewScheduleUTCString] = useState(new Date());
+    const [newScheduleUTCString, setNewScheduleUTCString] = useState(new Date(date));
     const [isVisibleDateModal, setIsVisibleDateModal] = useState(false);
 
     const [isDailyRepetition, setIsDailyRepetition] = useState(false);
@@ -121,6 +121,7 @@ import serializeParams from "../../modules/params/serializeParams";
                   color={colors.gray.GR800}
                   placeholderTextColor={colors.gray.GR600}
                   placeholder="제목"
+                  autoFocus={true}
                 />
               </View>
               {/* <View style={styles.inputBox}>

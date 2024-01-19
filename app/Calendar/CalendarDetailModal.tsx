@@ -9,8 +9,8 @@ import { useRoute } from "@react-navigation/native";
 import serializeParams from "../../modules/params/serializeParams";
 import BtnXLarge from "../../components/button/BtnXLarge";
 import moment from "moment";
-import { useQuery } from "@tanstack/react-query";
-import { API_deleteSchedule, API_getSchedule } from "../../controller/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { API_checkSchedule, API_deleteSchedule, API_getSchedule } from "../../controller/api";
 import momentToUtcString from "../../modules/time/momentToUtcString";
 import { useRecoilValue } from "recoil";
 import { calendarAtom } from "../../recoil/recoil";
@@ -18,8 +18,10 @@ import checkIsSameDay from "../../modules/time/checkIsSameDay";
 import ScheduleItem from "../../components/slider/ScheduleItem";
 import requestPopupOpen from "../../action/popup/requestPopupOpen";
 import requestLoadingClose from "../../action/loading/requestLoadingClose";
+import { useEffect, useState } from "react";
 
 const CalendarDetailModal = () => {
+  const queryClient = useQueryClient();
   const calendarRecoilValue = useRecoilValue(calendarAtom);
   const { date } = serializeParams(
     useLocalSearchParams()
@@ -37,13 +39,19 @@ const CalendarDetailModal = () => {
     queryFn: () => API_getSchedule({
       calendar_id: calendarRecoilValue.currentCalendar?.calendar_id as number,
       target_date: momentToUtcString(moment(date))
-    }),
+    }).then(res => res.data),
     enabled: false
   });
   
-  const scheduleResult =  getScheduleQuery.data?.data;
-  const scheduleList = scheduleResult?.data?.scheduleList.filter(schedule => checkIsSameDay(schedule.due_date,moment.utc(date))); 
+  const scheduleResult =  getScheduleQuery.data;
+  const scheduleList =  scheduleResult?.data?.scheduleList.filter(schedule => checkIsSameDay(schedule.due_date,moment.utc(date))); 
   
+  // useEffect(()=>{
+  //   if(scheduleList && scheduleList?.length!==0){
+  //     setCheckList(scheduleList.map(schedule => schedule.is_done));
+  //   }
+  // },[JSON.stringify(scheduleList)]);
+
   const handleDeleteModalOpen = (schedule: scheduleType) => {
     requestPopupOpen(
         {
@@ -68,11 +76,45 @@ const CalendarDetailModal = () => {
     })
   }
 
-  const renderListItem = (schedule: scheduleType) => {
+  const handleChangeCacheData = (schedule: scheduleType) => {
+    queryClient.setQueryData(
+      ["API_getSchedule", calendarRecoilValue.currentCalendar?.calendar_id],
+      (oldGetScheduleQueryData: typeof getScheduleQuery.data | undefined) => {
+        if (oldGetScheduleQueryData?.data?.scheduleList) {
+          let nextData = oldGetScheduleQueryData.data.scheduleList.map((item) => {
+            if (item.calendar_id === schedule.calendar_id) {
+              return { ...item, is_done: !item.is_done };
+            }
+            return item;
+          });
+          return { ...oldGetScheduleQueryData, data: { ...oldGetScheduleQueryData.data, scheduleList: nextData } };
+        }
+        return oldGetScheduleQueryData;
+      }
+    );
+  }
+
+  const handleCheckSchedule = (schedule: scheduleType,index: number) => {
+    // changeCheckListByIndex(index);
+    handleChangeCacheData(schedule);
+    API_checkSchedule({schedule_id: schedule.schedule_id})
+    .then(async(res)=>{
+      let {code} = res.data;
+      if(code!==200){
+        
+        // handleChangeCacheData(schedule);
+      }
+    })
+  }
+
+  const renderListItem = (schedule: scheduleType,index: number) => {
     return ( <ScheduleItem
         onDelete={handleDeleteModalOpen}
-        onPress={(s: scheduleType)=>{}}
+        onPress={(schedule: scheduleType)=>{
+          handleCheckSchedule(schedule,index);
+        }}
         schedule={schedule}
+        isChecked={schedule.is_done}
       />
       // <View style={styles.scheduleContainer}>
       //   <CommonText
@@ -113,7 +155,7 @@ const CalendarDetailModal = () => {
           contentContainerStyle={{
             flexGrow: 1,
           }}
-          renderItem={({ item }) => renderListItem(item)}
+          renderItem={({ item,index }) => renderListItem(item,index)}
         />
 
         <BtnXLarge

@@ -117,3 +117,11 @@ export interface API_deleteSchedule_request_type extends defaultApiRequestType {
 }
 
 export type API_deleteSchedule_response_type = defaultApiResponseType<{}>
+
+
+
+export interface API_checkSchedule_request_type extends defaultApiRequestType {
+    schedule_id: number
+}
+
+export type API_checkSchedule_response_type = defaultApiResponseType<{}>

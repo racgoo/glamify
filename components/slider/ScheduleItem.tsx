@@ -26,12 +26,14 @@ interface ScheduleItemProps {
   onPress: (schedule: scheduleType) => void;
   onDelete: (schedule: scheduleType) => void;
   schedule: scheduleType;
+  isChecked: boolean;
 }
 
 const ScheduleItem = ({
   onPress,
   onDelete,
   schedule,
+  isChecked
 }: ScheduleItemProps): JSX.Element => {
   const siwperRef: React.LegacyRef<Swiper> = useRef(null);
   const calendarReocilValue = useRecoilValue(calendarAtom);
@@ -66,6 +68,12 @@ const ScheduleItem = ({
             onPress(schedule);
           }}
         >
+          <CommonText
+            text={isChecked ? "(완료)" : "(미완료)"}
+            type="Title3B18"
+            color={colors.gray.GR750}
+            style={{marginLeft: 20}}
+          />
           <CommonText
             text={schedule.title}
             type="Title3B18"
