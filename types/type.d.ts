@@ -13,9 +13,8 @@ type routeType = {
 
 type tabRouteType = 
 "Home" |
-"Search" |
-"Interest" |
-"Chat" |
+"Calendar" |
+"Community" |
 "Setting";
  
 type calendarType = {
@@ -44,4 +43,13 @@ type markType = {
       dots: { key: string; description: string; color: string }[];
       marked: boolean;
     };
+}
+
+type pushMessageType = {
+    pathname?: keyof routeType;
+    tabPathname?: tabRouteType;
+    params?: object;
+    title?: string,
+    subtitle?: string,
+    body?: string,
 }

@@ -97,7 +97,9 @@ export interface API_createSchedule_request_type extends defaultApiRequestType {
     due_date: string,
 }
 
-export type API_createSchedule_response_type = defaultApiResponseType<{}>
+export type API_createSchedule_response_type = defaultApiResponseType<{
+    newSchedule: scheduleType
+}>
 
 
 

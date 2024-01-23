@@ -1,5 +1,6 @@
 import {
     FlatList,
+    Keyboard,
     ScrollView,
     StyleSheet,
     Switch,
@@ -24,6 +25,7 @@ import router from "../../references/router";
 import momentToUtcString from "../../modules/time/momentToUtcString";
 import { useQuery } from "@tanstack/react-query";
 import serializeParams from "../../modules/params/serializeParams";
+import addPushSchedule from "../../modules/pushMessage/addPushSchedule";
   
   const CreateScheduleModal = () => {
     const { date } = serializeParams(useLocalSearchParams()) as routeType["Schedule/CreateScheduleModal"];
@@ -62,9 +64,10 @@ import serializeParams from "../../modules/params/serializeParams";
           </TouchableOpacity>
         )
       })
-    },[newScheduleTitle,newScheduleDescription]);
+    },[newScheduleTitle,newScheduleDescription,newScheduleUTCString]);
 
     const handleSave = async () => {
+      Keyboard.dismiss();
       requestLoadingOpen();
       API_createSchedule({
         calendar_id: calendarRecoilValue.currentCalendar?.calendar_id as number,
@@ -72,9 +75,12 @@ import serializeParams from "../../modules/params/serializeParams";
         description: newScheduleDescription,
         due_date: momentToUtcString(moment(newScheduleUTCString))
       }).then(async(res)=>{
-        let { code } = res.data;
+        let { code, data } = res.data;
         if(code===200){
           await getScheduleQuery.refetch();
+          if(data?.newSchedule){
+            await addPushSchedule(data.newSchedule);
+          }
           router.goBack();
         }
       }).finally(()=>{

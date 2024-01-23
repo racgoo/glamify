@@ -13,6 +13,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import requestLoadingClose from "../action/loading/requestLoadingClose";
 import CommonText from "../components/text/CommonText";
 import colors from "../styles/colors";
+import PushMessageDeepLinking from "../components/dynamicModules/pushMessage/PushMessageDeepLinking";
 LogBox.ignoreAllLogs(true);
 LogBox.ignoreLogs(["Warning: ..."]);
 
@@ -58,6 +59,7 @@ export default function RootLayout() {
         <StatusBar style="dark" />
         <RecoilNexus />
         <NavigationModule />
+        <PushMessageDeepLinking />
         <RootLayoutNav />
       </RecoilRoot>
     </QueryClientProvider>

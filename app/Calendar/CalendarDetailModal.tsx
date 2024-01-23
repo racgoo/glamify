@@ -19,6 +19,7 @@ import ScheduleItem from "../../components/slider/ScheduleItem";
 import requestPopupOpen from "../../action/popup/requestPopupOpen";
 import requestLoadingClose from "../../action/loading/requestLoadingClose";
 import { useEffect, useState } from "react";
+import cancelPushSchedule from "../../modules/pushMessage/cancelPushSchedule";
 
 const CalendarDetailModal = () => {
   const queryClient = useQueryClient();
@@ -45,12 +46,6 @@ const CalendarDetailModal = () => {
   
   const scheduleResult =  getScheduleQuery.data;
   const scheduleList =  scheduleResult?.data?.scheduleList.filter(schedule => checkIsSameDay(schedule.due_date,moment.utc(date))); 
-  
-  // useEffect(()=>{
-  //   if(scheduleList && scheduleList?.length!==0){
-  //     setCheckList(scheduleList.map(schedule => schedule.is_done));
-  //   }
-  // },[JSON.stringify(scheduleList)]);
 
   const handleDeleteModalOpen = (schedule: scheduleType) => {
     requestPopupOpen(
@@ -70,6 +65,7 @@ const CalendarDetailModal = () => {
     API_deleteSchedule({schedule_id: schedule.schedule_id})
     .then(async()=>{
         await getScheduleQuery.refetch();
+        await cancelPushSchedule(schedule);
     })
     .finally(()=>{
         requestLoadingClose();
@@ -82,7 +78,7 @@ const CalendarDetailModal = () => {
       (oldGetScheduleQueryData: typeof getScheduleQuery.data | undefined) => {
         if (oldGetScheduleQueryData?.data?.scheduleList) {
           let nextData = oldGetScheduleQueryData.data.scheduleList.map((item) => {
-            if (item.calendar_id === schedule.calendar_id) {
+            if (item.schedule_id === schedule.schedule_id) {
               return { ...item, is_done: !item.is_done };
             }
             return item;
@@ -95,14 +91,12 @@ const CalendarDetailModal = () => {
   }
 
   const handleCheckSchedule = (schedule: scheduleType,index: number) => {
-    // changeCheckListByIndex(index);
     handleChangeCacheData(schedule);
     API_checkSchedule({schedule_id: schedule.schedule_id})
     .then(async(res)=>{
       let {code} = res.data;
       if(code!==200){
-        
-        // handleChangeCacheData(schedule);
+        handleChangeCacheData(schedule);
       }
     })
   }
