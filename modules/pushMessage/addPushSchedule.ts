@@ -6,6 +6,7 @@ import Constants from 'expo-constants';
 
 const addPushSchedule = async (schedule: scheduleType, repeatInterval: false | number = false) => {
     const NOTIFICATION_ID = schedule.schedule_id.toString();
+    const NOTIFICATION_ID_PREVIEW = schedule.schedule_id.toString()+"[preview]";
     console.log(schedule,moment(schedule.due_date),moment(schedule.due_date).diff(moment(), 'seconds'))
   // Expo Background Fetch 설정
   if (Constants.manifest && repeatInterval) {
@@ -20,13 +21,26 @@ const addPushSchedule = async (schedule: scheduleType, repeatInterval: false | n
   await Notifications.scheduleNotificationAsync({
     identifier: NOTIFICATION_ID,
     content: {
-      title: "캘린더",
+      title: "Glamify",
       subtitle: schedule.title,
       body: schedule.description,
     },
     trigger: {
       repeats: repeatInterval ? true : false,
       seconds: moment(schedule.due_date).diff(moment(), 'seconds'),
+    },
+  });
+
+  await Notifications.scheduleNotificationAsync({
+    identifier: NOTIFICATION_ID_PREVIEW,
+    content: {
+      title: "Glamify",
+      subtitle: schedule.title+"(30분 전)",
+      body: schedule.description,
+    },
+    trigger: {
+      repeats: repeatInterval ? true : false,
+      seconds: moment(schedule.due_date).subtract(30,"m").diff(moment(), 'seconds'),
     },
   });
 };

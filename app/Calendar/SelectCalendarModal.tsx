@@ -23,15 +23,15 @@ const SelectCalendarModal = () => {
     const calendarRecoilValue = useRecoilValue(calendarAtom);
     const getCalendarListQuery = useQuery({
       queryKey: ["API_getCalendarList"],
-      queryFn: () => API_getCalendarList({}),
+      queryFn: () => API_getCalendarList({}).then(res=>res.data),
       enabled: false
     });
 
     const isCalendarListLoading = getCalendarListQuery.isLoading;
-    const calendarListResult =  getCalendarListQuery.data?.data;
+    const calendarListResult =  getCalendarListQuery.data;
 
     useEffect(()=>{
-        if(calendarListResult?.data?.calendarList.length===0)router.goBack();
+        if(calendarListResult?.data?.calendarList?.length===0)router.goBack();
     },[calendarListResult?.data?.calendarList]);
 
     const handleDeleteModalOpen = (calendar: calendarType) => {

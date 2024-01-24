@@ -16,7 +16,7 @@ const CreateCalendarModal = () => {
     const [isLoading,setIsLoading] = useState(false);
     const getCalendarListQuery = useQuery({
         queryKey: ["API_getCalendarList"],
-        queryFn: () => API_getCalendarList({}),
+        queryFn: () => API_getCalendarList({}).then(res=>res.data),
         enabled: false
       });
       

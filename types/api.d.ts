@@ -104,8 +104,8 @@ export type API_createSchedule_response_type = defaultApiResponseType<{
 
 
 export interface API_getSchedule_request_type extends defaultApiRequestType {
-    calendar_id: number
-    target_date: string
+    calendar_id?: number
+    target_date?: string
 }
 
 export type API_getSchedule_response_type = defaultApiResponseType<{
@@ -127,3 +127,14 @@ export interface API_checkSchedule_request_type extends defaultApiRequestType {
 }
 
 export type API_checkSchedule_response_type = defaultApiResponseType<{}>
+
+
+
+export interface API_searchSchedule_request_type extends defaultApiRequestType {
+    calendar_id?: number
+    title?: string
+}
+
+export type API_searchSchedule_response_type = defaultApiResponseType<{
+    scheduleList: scheduleType[]
+}>

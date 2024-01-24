@@ -11,6 +11,7 @@ const fontSize = {
   s14: { fontSize: 14 },
   s12: { fontSize: 12 },
   s10: { fontSize: 10 },
+  s8: { fontSize: 8 },
 };
 const fontFamily = {
   bold: { fontFamily: "Pretendard-Bold"}, //700
@@ -28,6 +29,7 @@ const lineHeight = {
   l22: { lineHeight: 22 },
   l18: { lineHeight: 18 },
   l16: { lineHeight: 16 },
+  l12: { lineHeight: 12 },
   l10: { lineHeight: 10 },
 };
 export default StyleSheet.create({
@@ -90,6 +92,16 @@ export default StyleSheet.create({
     ...fontSize.s12,
     ...fontFamily.medium,
     ...lineHeight.l18,
+  },
+  Caption1M10: {
+    ...fontSize.s10,
+    ...fontFamily.medium,
+    ...lineHeight.l12,
+  },
+  Caption1M8: {
+    ...fontSize.s8,
+    ...fontFamily.medium,
+    ...lineHeight.l10,
   },
   Caption2B12: {
     ...fontSize.s12,

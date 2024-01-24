@@ -1,6 +1,5 @@
-// import { reloadAsync } from "expo-updates";
+import { reloadAsync } from "expo-updates";
 const forceReload = () => {
-    // reloadAsync();
-    // RNRestart.restart();
+    reloadAsync();
 }
 export default forceReload;

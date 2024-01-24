@@ -14,6 +14,7 @@ import { setRecoil } from "recoil-nexus";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import router from "../../references/router";
 import serializeParams from "../../modules/params/serializeParams";
+import requestPushMessageScheduleReset from "../../action/pushMessage/requestPushMessageScheduleReset";
 
 
 
@@ -32,6 +33,7 @@ const SocialWebviewScreen = () => {
         if(userRecoilValue.access_token!==""){
             AsyncStorage.setItem("access_token",userRecoilValue.access_token);
             AsyncStorage.setItem("refresh_token",userRecoilValue.refresh_token);
+            requestPushMessageScheduleReset();
             router.reset({pathname: "MainTabs", params: {tabPathname:"Home"} as routeType["MainTabs"]});
         }
     },[userRecoilValue])

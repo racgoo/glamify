@@ -20,6 +20,7 @@ import requestPopupOpen from "../../action/popup/requestPopupOpen";
 import requestLoadingClose from "../../action/loading/requestLoadingClose";
 import { useEffect, useState } from "react";
 import cancelPushSchedule from "../../modules/pushMessage/cancelPushSchedule";
+import addPushSchedule from "../../modules/pushMessage/addPushSchedule";
 
 const CalendarDetailModal = () => {
   const queryClient = useQueryClient();
@@ -65,7 +66,7 @@ const CalendarDetailModal = () => {
     API_deleteSchedule({schedule_id: schedule.schedule_id})
     .then(async()=>{
         await getScheduleQuery.refetch();
-        await cancelPushSchedule(schedule);
+        cancelPushSchedule(schedule);
     })
     .finally(()=>{
         requestLoadingClose();
@@ -97,6 +98,12 @@ const CalendarDetailModal = () => {
       let {code} = res.data;
       if(code!==200){
         handleChangeCacheData(schedule);
+      }else{
+        if(schedule.is_done===true){
+          cancelPushSchedule(schedule);
+        }else{
+          addPushSchedule(schedule);
+        }
       }
     })
   }

@@ -8,6 +8,7 @@ import colors from "../styles/colors";
 import CommonText from "../components/text/CommonText";
 import getExpoToken from "../modules/pushMessage/getExpoToken";
 import addPushListener from "../modules/pushMessage/addPushListener";
+import requestPushMessageScheduleReset from "../action/pushMessage/requestPushMessageScheduleReset";
 
 LogBox.ignoreAllLogs(true);
 LogBox.ignoreLogs(["..."]);
@@ -27,7 +28,7 @@ const FirstPage = () => {
   };
 
   useEffect(() => {
-    
+    // AsyncStorage.clear();
      async function autoLogin() {
         let isSuccess=false;
         const refresh_token = await AsyncStorage.getItem("refresh_token");

@@ -8,7 +8,7 @@ const addPushListener = () => {
     const subscription = Notifications.addNotificationResponseReceivedListener(
         (response) => {
             let userRecoilValue = getRecoil(userAtom);
-            const data: pushMessageType = response.notification.request.content.data;
+            const data: pushMessageDataType = response.notification.request.content.data;
             if(!data.params){
                 data.params = {};
             }
@@ -23,8 +23,9 @@ const addPushListener = () => {
       );
   
     Notifications.addNotificationReceivedListener((notification: Notifications.Notification) => {
-        let data: pushMessageType = notification.request.content.data;
-        requestPopupOpen({title: data.subtitle as string, description: data.body as string, type: "confirm", action: () => {}});
+        let pushMessage = notification.request.content;
+        
+        requestPopupOpen({title: pushMessage.subtitle as string, description: pushMessage.body as string, type: "confirm", action: () => {}});
     })
 };
 export default addPushListener;

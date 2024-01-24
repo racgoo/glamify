@@ -67,7 +67,6 @@ const DynamicCalendar = ({
 
   useEffect(()=>{
     if(scheduleResult?.data?.scheduleList){
-      // console.log(JSON.stringify(scheduleResult.data.scheduleList))
       setMarkedDates(transformScheduleToMarkData(scheduleResult?.data?.scheduleList));
     }
   },[scheduleResult?.data?.scheduleList]);
@@ -93,13 +92,15 @@ const DynamicCalendar = ({
     | React.ComponentType<
         DayProps & {
           date?: DateData | undefined;
+          today?: string;
         }
       >
-    | undefined = ({ date, state, marking }) => {
+    | undefined = ({ date,today, state, marking }) => {
+    let isToday = (today===date?.dateString);
     return (
       <TouchableOpacity
         activeOpacity={0.5}
-        style={{ width: "100%", minHeight: 60 }}
+        style={{ width: "100%", height: 80,borderRadius: 8, borderWidth: 2, borderColor:  isToday ? colors.orange.OR500 : "#FFFFFF", paddingHorizontal: 1}}
         onPress={() => {
           handleClick(date?.dateString as string);
         }}
@@ -115,19 +116,23 @@ const DynamicCalendar = ({
               <View
                 key={index}
                 style={{
+                  width: "100%",
                   backgroundColor: dot.color,
                   paddingHorizontal: 5,
                   paddingVertical: 1,
                   borderRadius: 20,
-                  marginBottom: 1
+                  marginBottom: 1,
+                  paddingTop: 0,
+                  paddingBottom: 0
                 }}
               >
                 <CommonText
                   numberOfLines={1}
                   ellipsizeMode="clip"
                   text={dot.key}
-                  type="Caption1M12"
+                  type="Caption1M10"
                   color={colors.gray.White}
+                  margin={0}
                 />
               </View>
             ))}
@@ -146,7 +151,7 @@ const DynamicCalendar = ({
             backgroundColor: colors.gray.White,
             zIndex: 1,
             justifyContent: "center",
-            alignItems: "center",
+            alignItems: "center"
           }}
         >
           <Spinner />
@@ -155,7 +160,7 @@ const DynamicCalendar = ({
       <FlatList
         ref={flatListRef}
         data={[
-          <View style={{ alignItems: "center", justifyContent: "center" }}>
+          <View style={{ alignItems: "center", justifyContent: "center"}}>
             <View style={{ flexDirection: "row",alignItems: "center",justifyContent: "space-between",width: "100%", paddingHorizontal: 20 }}>
               <CommonText
                 text={moment(monthDate).format("YYYY년 MM월")}
@@ -225,15 +230,17 @@ const DynamicCalendar = ({
             hideExtraDays={false}
             customHeader={() => <Fragment />}
             stickyHeaderIndices={[0]}
+            showsVerticalScrollIndicator={false}
             style={{
               flex: 1,
+              minHeight: 620
             }}
             scrollToOverflowEnabled
             markedDates={{
               ...markedDates,
             }}
             pagingEnabled={true}
-            dayComponent={renderDay}
+            dayComponent={(date)=>renderDay({...date,today: moment().format("YYYY-MM-DD")})}
             theme={{
               selectedDayBackgroundColor: colors.red.Red300,
               arrowColor: colors.gray.GR400,

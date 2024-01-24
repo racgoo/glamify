@@ -17,6 +17,8 @@ interface commonTextProps extends TextStyle {
     | "Body5S14"
     | "Body6M14"
     | "Caption1M12"
+    | "Caption1M10"
+    | "Caption1M8"
     | "Caption2B12";
   text: string | JSX.Element;
   numberOfLines: number;

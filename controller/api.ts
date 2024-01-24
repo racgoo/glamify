@@ -25,6 +25,8 @@ import {
   API_healthCheck_response_type,
   API_kakaoLoginVerify_request_type,
   API_kakaoLoginVerify_response_type,
+  API_searchSchedule_request_type,
+  API_searchSchedule_response_type,
   networkStatusType,
 } from "../types/api";
 import requestLoadingClose from "../action/loading/requestLoadingClose";
@@ -201,8 +203,11 @@ export const API_checkSchedule = (
   return postRequest("schedule/checkSchedule", data,{});
 };
 
-
-
+export const API_searchSchedule = (
+  data: API_searchSchedule_request_type
+): Promise<AxiosResponse<API_searchSchedule_response_type>> => {
+  return postRequest("schedule/searchSchedule", data,{});
+};
 
 // export const API_tokenLogin = (data) => {
 //   return postRequest("auth/token/login",data);
