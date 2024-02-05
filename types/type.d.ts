@@ -16,6 +16,10 @@ type tabRouteType =
 "Calendar" |
 "Community" |
 "Setting";
+
+type EntriesType<T> = {
+    [K in keyof T]: [K, T[K]];
+}[keyof T][];
  
 type calendarType = {
     user_id: number;

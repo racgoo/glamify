@@ -1,20 +1,25 @@
 import {
-    FlatList,
-    Keyboard,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
-  } from "react-native";
-  import RenderSafeAreaView from "../../components/layout/RenderSafeAreaView";
-  import CommonText from "../../components/text/CommonText";
-  import colors from "../../styles/colors";
-  import CommonTextInput from "../../components/text/CommonTextInput";
-  import { Dispatch, SetStateAction, useEffect, useLayoutEffect, useState } from "react";
-  import DateTimePickerModal from "react-native-modal-datetime-picker";
-  import moment from "moment";
+  Keyboard,
+  KeyboardAvoidingView,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  findNodeHandle,
+} from "react-native";
+import RenderSafeAreaView from "../../components/layout/RenderSafeAreaView";
+import CommonText from "../../components/text/CommonText";
+import colors from "../../styles/colors";
+import CommonTextInput from "../../components/text/CommonTextInput";
+import {
+  Fragment,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import moment from "moment";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { API_createSchedule, API_getSchedule } from "../../controller/api";
 import { useRecoilValue } from "recoil";
@@ -26,98 +31,168 @@ import momentToUtcString from "../../modules/time/momentToUtcString";
 import { useQuery } from "@tanstack/react-query";
 import serializeParams from "../../modules/params/serializeParams";
 import addPushSchedule from "../../modules/pushMessage/addPushSchedule";
-  
-  const CreateScheduleModal = () => {
-    const { date } = serializeParams(useLocalSearchParams()) as routeType["Schedule/CreateScheduleModal"];
-    const navigation = useNavigation();
-    const calendarRecoilValue = useRecoilValue(calendarAtom);
+import CommonSwitch from "../../components/CommonSwitch";
+import BtnXLarge from "../../components/button/BtnXLarge";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
-    const getScheduleQuery = useQuery({
-      queryKey: ["API_getSchedule",calendarRecoilValue.currentCalendar?.calendar_id],
-      queryFn: () => API_getSchedule({
+const repetitionTypeJSON = {
+  DAILY: "매일",
+  WEEKLY: "매주",
+  MONTHLY: "매달",
+  YEARLY: "매년",
+};
+
+const dayList = ["일", "월", "화", "수", "목", "금", "토"];
+
+function isValidHHMM(text: string) {
+  if (text.length !== 4) {
+    return false;
+  }
+  if (!/^\d+$/.test(text)) {
+    return false;
+  }
+  const hours = parseInt(text.substring(0, 2));
+  if (hours < 0 || hours > 23) {
+    return false;
+  }
+  const minutes = parseInt(text.substring(2, 4));
+  if (minutes < 0 || minutes > 59) {
+    return false;
+  }
+  return true;
+}
+
+const swapMaskByIndex = (mask: string, index: number) => {
+  return mask
+    .split("")
+    .map((m, i) => (i === index ? (m === "0" ? "1" : "0") : m))
+    .join("");
+};
+
+const CreateScheduleModal = () => {
+  const { date } = serializeParams(
+    useLocalSearchParams()
+  ) as routeType["Schedule/CreateScheduleModal"];
+  const navigation = useNavigation();
+  const calendarRecoilValue = useRecoilValue(calendarAtom);
+
+  const getScheduleQuery = useQuery({
+    queryKey: [
+      "API_getSchedule",
+      calendarRecoilValue.currentCalendar?.calendar_id,
+    ],
+    queryFn: () =>
+      API_getSchedule({
         calendar_id: calendarRecoilValue.currentCalendar?.calendar_id as number,
-        target_date: momentToUtcString(moment.utc(date))
-      }).then(res=>res.data),
-      enabled: false
+        target_date: momentToUtcString(moment.utc(date)),
+      }).then((res) => res.data),
+    enabled: false,
+  });
+
+  const scrollviewRef = useRef<KeyboardAwareScrollView>(null);
+  const [newScheduleTitle, setNewScheduleTitle] = useState("");
+  const [newSchedulePlace, setNewSchedulePlace] = useState("");
+  const [newScheduleDescription, setNewScheduleDescription] = useState("");
+  const [newScheduleUTCString, setNewScheduleUTCString] = useState(
+    new Date(date)
+  );
+  const [isVisibleDateModal, setIsVisibleDateModal] = useState(false);
+  const [isVisibleIntervalDateModal, setIsVisibleIntervalDateModal] =
+    useState(false);
+
+  const [isRepetition, setIsRepetition] = useState(false);
+  const [repetitionType, setRepetitionType] =
+    useState<keyof typeof repetitionTypeJSON>("DAILY");
+  const [repetitionInterval, setRepetitionInterval] = useState("1");
+  const [weeklyDayMask, setWeeklyDayMask] = useState(
+    swapMaskByIndex("0000000", newScheduleUTCString.getDay())
+  );
+  const [
+    newScheduleEndRepetitionUTCString,
+    setNewScheduleEndRepetitionUTCString,
+  ] = useState<null | Date>(null);
+
+  useLayoutEffect(() => {
+    let isInValidForSave = newScheduleTitle.length === 0;
+    let textColor = isInValidForSave ? colors.gray.GR500 : colors.gray.GR900;
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity disabled={isInValidForSave} onPress={handleSave}>
+          <CommonText text={"저장"} type="Body1S16" color={textColor} />
+        </TouchableOpacity>
+      ),
     });
+  }, [newScheduleTitle, newScheduleDescription, newScheduleUTCString]);
 
-    const [newScheduleTitle, setNewScheduleTitle] = useState("");
-    const [newSchedulePlace, setNewSchedulePlace] = useState("");
-    const [newScheduleDescription, setNewScheduleDescription] = useState("");
-    const [newScheduleUTCString, setNewScheduleUTCString] = useState(new Date(date));
-    const [isVisibleDateModal, setIsVisibleDateModal] = useState(false);
-
-    const [isDailyRepetition, setIsDailyRepetition] = useState(false);
-    const [isWeeklyRepetition, setIsWeeklyRepetition] = useState(false);
-    const [isMonthlyRepetition, setIsMonthlyRepetition] = useState(false);
-    const [is3MonthlyRepetition, setIs3MonthlyRepetition] = useState(false);
-    const [is6MonthlyRepetition, setIs6MonthlyRepetition] = useState(false);
-    const [isYearlyRepetition, setIsYearlyRepetition] = useState(false);
-  
-    useLayoutEffect(()=>{
-      let isInValidForSave = newScheduleTitle.length===0;
-      let textColor = isInValidForSave ? colors.gray.GR500 : colors.gray.GR900;
-      navigation.setOptions({
-        headerRight: () => (
-          <TouchableOpacity disabled={isInValidForSave} onPress={handleSave} >
-            <CommonText text={"저장"} type="Body1S16" color={textColor} />
-          </TouchableOpacity>
-        )
-      })
-    },[newScheduleTitle,newScheduleDescription,newScheduleUTCString]);
-
-    const handleSave = async () => {
-      Keyboard.dismiss();
-      requestLoadingOpen();
-      API_createSchedule({
-        calendar_id: calendarRecoilValue.currentCalendar?.calendar_id as number,
-        title: newScheduleTitle,
-        description: newScheduleDescription,
-        due_date: momentToUtcString(moment(newScheduleUTCString))
-      }).then(async(res)=>{
+  const handleSave = async () => {
+    Keyboard.dismiss();
+    requestLoadingOpen();
+    API_createSchedule({
+      calendar_id: calendarRecoilValue.currentCalendar?.calendar_id as number,
+      title: newScheduleTitle,
+      description: newScheduleDescription,
+      due_date: momentToUtcString(moment(newScheduleUTCString)),
+    })
+      .then(async (res) => {
         let { code, data } = res.data;
-        if(code===200){
+        if (code === 200) {
           await getScheduleQuery.refetch();
-          if(data?.newSchedule){
+          if (data?.newSchedule) {
             await addPushSchedule(data.newSchedule);
           }
           router.goBack();
         }
-      }).finally(()=>{
-        requestLoadingClose();
       })
-    }
+      .finally(() => {
+        requestLoadingClose();
+      });
+  };
 
-    const toggleSwitch = (
-      type: "daily" | "weekly" | "monthly" | "3monthly" | "6monthly" | "yearly"
-    ) => {
-      let mutationFunction: Dispatch<SetStateAction<boolean>>;
-      switch (type) {
-        case "daily":
-          mutationFunction = setIsDailyRepetition;
-          break;
-        case "weekly":
-          mutationFunction = setIsWeeklyRepetition;
-          break;
-        case "monthly":
-          mutationFunction = setIsMonthlyRepetition;
-          break;
-        case "3monthly":
-          mutationFunction = setIs3MonthlyRepetition;
-          break;
-        case "6monthly":
-          mutationFunction = setIs6MonthlyRepetition;
-          break;
-        case "yearly":
-          mutationFunction = setIsYearlyRepetition;
-          break;
-      }
-      mutationFunction((pre) => !pre);
-    };
-  
-    return (
-      <RenderSafeAreaView>
-        <View style={styles.container}>
+  const handleChangeRepetitionInterval = (newInterval: string) => {
+    if (newInterval === "" || newInterval === "0") setRepetitionInterval("");
+    else if (parseInt(newInterval) <= 100) {
+      setRepetitionInterval(parseInt(newInterval).toString());
+    }
+  };
+
+  const resetDetailSetting = () => {
+    setRepetitionInterval("1");
+    setWeeklyDayMask(swapMaskByIndex("0000000", newScheduleUTCString.getDay()));
+    setNewScheduleEndRepetitionUTCString(null);
+  };
+
+  useEffect(() => {
+    if (isRepetition) {
+      setRepetitionType("DAILY");
+      resetDetailSetting();
+    }
+  }, [isRepetition]);
+
+  useEffect(() => {
+    resetDetailSetting();
+  }, [repetitionType]);
+
+  useEffect(() => {
+    //시간 자동 입력기능
+    let tmp = newScheduleTitle.substr(0, 4);
+    if (isValidHHMM(tmp)) {
+      let hour = parseInt(tmp.substr(0, 2));
+      let minute = parseInt(tmp.substr(2, 2));
+      let t = new Date(newScheduleUTCString);
+      t.setHours(hour, minute);
+      setNewScheduleUTCString(t);
+    }
+  }, [newScheduleTitle]);
+
+  return (
+    <RenderSafeAreaView isNeedTouchableWithoutFeedback={true}>
+      <View style={[styles.container]}>
+        <KeyboardAvoidingView
+          style={{ flex: 1, width: "100%" }}
+          behavior={"padding"}
+          enabled
+          keyboardVerticalOffset={120}
+        >
           <ScrollView style={{ flex: 1, width: "100%", paddingHorizontal: 20 }}>
             <View style={[styles.inputBoxContainer]}>
               <View style={styles.inputBox}>
@@ -126,19 +201,19 @@ import addPushSchedule from "../../modules/pushMessage/addPushSchedule";
                   setText={setNewScheduleTitle}
                   color={colors.gray.GR800}
                   placeholderTextColor={colors.gray.GR600}
-                  placeholder="제목"
+                  placeholder="제목(HHMM 입력 가능)"
                   autoFocus={true}
                 />
               </View>
-              {/* <View style={styles.inputBox}>
+              <View style={styles.inputBox}>
                 <CommonTextInput
-                  text={newScheduleDescription}
-                  setText={setNewScheduleDescription}
+                  text={newSchedulePlace}
+                  setText={setNewSchedulePlace}
                   color={colors.gray.GR800}
                   placeholderTextColor={colors.gray.GR600}
                   placeholder="위치(선택)"
                 />
-              </View> */}
+              </View>
               <View style={styles.inputBox}>
                 <TouchableOpacity
                   onPress={() => {
@@ -152,199 +227,145 @@ import addPushSchedule from "../../modules/pushMessage/addPushSchedule";
                     color={colors.gray.GR500}
                   />
                 </TouchableOpacity>
-                <DateTimePickerModal
-                  isVisible={isVisibleDateModal}
-                  mode={"datetime"}
-                  onConfirm={(e) => {
-                    setNewScheduleUTCString(e);
-                    setIsVisibleDateModal(false);
-                  }}
-                  onCancel={() => {
-                    setIsVisibleDateModal(false);
-                  }}
-                  locale="ko"
-                  confirmTextIOS="확인"
-                  cancelTextIOS="취소"
-                  date={newScheduleUTCString}
-                />
               </View>
             </View>
-  
+
             <View style={{ height: 10 }} />
-  
-            {/* <View style={[styles.inputBoxContainer, {gap: 10}]}>
-            <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 10,
-                }}
-              >
-                <View
-                  style={[
-                    styles.inputBox,
-                    {
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      flexGrow: 1,
-                    },
-                  ]}
-                >
-                  <CommonText text={"매일 반복"} color={colors.gray.GR500} />
-                  <View style={{ height: 20, justifyContent: "center" }}>
-                    <Switch
-                      style={{ transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }] }}
-                      trackColor={{ false: "#767577", true: "#81b0ff" }}
-                      thumbColor={isDailyRepetition ? "#f5dd4b" : "#f4f3f4"}
-                      ios_backgroundColor="#3e3e3e"
-                      onValueChange={() => toggleSwitch("daily")}
-                      value={isDailyRepetition}
-                    />
-                  </View>
-                </View>
-  
-                <View
-                  style={[
-                    styles.inputBox,
-                    {
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      flexGrow: 1,
-                    },
-                  ]}
-                >
-                  <CommonText text={"매주 반복"} color={colors.gray.GR500} />
-                  <View style={{ height: 20, justifyContent: "center" }}>
-                    <Switch
-                      style={{ transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }] }}
-                      trackColor={{ false: "#767577", true: "#81b0ff" }}
-                      thumbColor={isWeeklyRepetition ? "#f5dd4b" : "#f4f3f4"}
-                      ios_backgroundColor="#3e3e3e"
-                      onValueChange={() => toggleSwitch("weekly")}
-                      value={isWeeklyRepetition}
-                    />
-                  </View>
-                </View>
+
+            <View style={[styles.inputBoxContainer]}>
+              <View style={[styles.inputRowContainer]}>
+                <CommonText
+                  text={"반복"}
+                  type="Body1S16"
+                  color={colors.gray.GR750}
+                />
+                <CommonSwitch value={isRepetition} setValue={setIsRepetition} />
               </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 10,
-                }}
-              >
-                <View
-                  style={[
-                    styles.inputBox,
-                    {
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      flexGrow: 1,
-                    },
-                  ]}
-                >
-                  <CommonText text={"매달 반복"} color={colors.gray.GR500} />
-                  <View style={{ height: 20, justifyContent: "center" }}>
-                    <Switch
-                      style={{ transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }] }}
-                      trackColor={{ false: "#767577", true: "#81b0ff" }}
-                      thumbColor={isMonthlyRepetition ? "#f5dd4b" : "#f4f3f4"}
-                      ios_backgroundColor="#3e3e3e"
-                      onValueChange={() => toggleSwitch("monthly")}
-                      value={isMonthlyRepetition}
+              {isRepetition && (
+                <Fragment>
+                  <View style={[styles.inputRowContainer, { gap: 4 }]}>
+                    {(
+                      Object.entries(repetitionTypeJSON) as EntriesType<
+                        typeof repetitionTypeJSON
+                      >
+                    ).map((entry) => (
+                      <BtnXLarge
+                        type={
+                          repetitionType === entry[0]
+                            ? "SolidHigh"
+                            : "OutlineHigh"
+                        }
+                        active={true}
+                        action={() => {
+                          setRepetitionType(entry[0]);
+                        }}
+                        text={entry[1]}
+                        style={{ flex: 1 }}
+                      />
+                    ))}
+                  </View>
+                  {repetitionType === "DAILY" ? (
+                    <View style={[styles.inputRowContainer]}>
+                      <CommonTextInput
+                        hideEraser={true}
+                        isNumberPad={true}
+                        text={repetitionInterval}
+                        setText={handleChangeRepetitionInterval}
+                        style={{
+                          width: 30,
+                          borderWidth: 2,
+                          borderRadius: 8,
+                          padding: 4,
+                          height: 30,
+                        }}
+                        marginRight={4}
+                        color={colors.gray.GR800}
+                        placeholderTextColor={colors.gray.GR500}
+                      />
+                      <CommonText
+                        text={"일 간격으로 반복"}
+                        type="Body1S16"
+                        color={colors.gray.GR750}
+                      />
+                    </View>
+                  ) : repetitionType === "WEEKLY" ? (
+                    <View>
+                      <View style={[styles.inputRowContainer]}>
+                        <CommonTextInput
+                          hideEraser={true}
+                          isNumberPad={true}
+                          text={repetitionInterval}
+                          setText={handleChangeRepetitionInterval}
+                          style={{
+                            width: 30,
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            padding: 4,
+                            height: 30,
+                          }}
+                          marginRight={4}
+                          color={colors.gray.GR800}
+                          placeholderTextColor={colors.gray.GR500}
+                        />
+                        <CommonText
+                          text={"주 간격으로 반복"}
+                          type="Body1S16"
+                          color={colors.gray.GR750}
+                        />
+                      </View>
+                      <View style={{ height: 10 }} />
+                      <View style={[styles.inputRowContainer, { gap: 4 }]}>
+                        {dayList.map((day, dayIndex) => (
+                          <BtnXLarge
+                            type={
+                              weeklyDayMask[dayIndex] === "1"
+                                ? "SolidHigh"
+                                : "OutlineHigh"
+                            }
+                            active={true}
+                            action={() => {
+                              setWeeklyDayMask(
+                                swapMaskByIndex(weeklyDayMask, dayIndex)
+                              );
+                            }}
+                            text={day}
+                            style={{ flex: 1 }}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                  ) : null}
+                  <View style={[styles.inputRowContainer, { gap: 4 }]}>
+                    <CommonText
+                      text={"반복 종료일"}
+                      type="Body1S16"
+                      color={colors.gray.GR750}
                     />
                   </View>
-                </View>
-  
-                <View
-                  style={[
-                    styles.inputBox,
-                    {
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      flexGrow: 1,
-                    },
-                  ]}
-                >
-                  <CommonText text={"석달 반복"} color={colors.gray.GR500} />
-                  <View style={{ height: 20, justifyContent: "center" }}>
-                    <Switch
-                      style={{ transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }] }}
-                      trackColor={{ false: "#767577", true: "#81b0ff" }}
-                      thumbColor={is3MonthlyRepetition ? "#f5dd4b" : "#f4f3f4"}
-                      ios_backgroundColor="#3e3e3e"
-                      onValueChange={() => toggleSwitch("3monthly")}
-                      value={is3MonthlyRepetition}
-                    />
+                  <View style={styles.inputBox}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setIsVisibleIntervalDateModal(true);
+                      }}
+                    >
+                      <CommonText
+                        text={
+                          newScheduleEndRepetitionUTCString
+                            ? moment(newScheduleEndRepetitionUTCString).format(
+                                "YYYY년 MM월 DD일 HH시 mm분"
+                              )
+                            : "미지정"
+                        }
+                        color={colors.gray.GR500}
+                      />
+                    </TouchableOpacity>
                   </View>
-                </View>
-              </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 10,
-                }}
-              >
-                <View
-                  style={[
-                    styles.inputBox,
-                    {
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      flexGrow: 1,
-                    },
-                  ]}
-                >
-                  <CommonText text={"반년 반복"} color={colors.gray.GR500} />
-                  <View style={{ height: 20, justifyContent: "center" }}>
-                    <Switch
-                      style={{ transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }] }}
-                      trackColor={{ false: "#767577", true: "#81b0ff" }}
-                      thumbColor={is6MonthlyRepetition ? "#f5dd4b" : "#f4f3f4"}
-                      ios_backgroundColor="#3e3e3e"
-                      onValueChange={() => toggleSwitch("6monthly")}
-                      value={is6MonthlyRepetition}
-                    />
-                  </View>
-                </View>
-  
-                <View
-                  style={[
-                    styles.inputBox,
-                    {
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      flexGrow: 1,
-                    },
-                  ]}
-                >
-                  <CommonText text={"매년 반복"} color={colors.gray.GR500} />
-                  <View style={{ height: 20, justifyContent: "center" }}>
-                    <Switch
-                      style={{ transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }] }}
-                      trackColor={{ false: "#767577", true: "#81b0ff" }}
-                      thumbColor={isYearlyRepetition ? "#f5dd4b" : "#f4f3f4"}
-                      ios_backgroundColor="#3e3e3e"
-                      onValueChange={() => toggleSwitch("yearly")}
-                      value={isYearlyRepetition}
-                    />
-                  </View>
-                </View>
-              </View>
-            </View> */}
-  
-            {/* <View style={{ height: 10 }} /> */}
-  
+                </Fragment>
+              )}
+            </View>
+
+            <View style={{ height: 10 }} />
+
             <View style={[styles.inputBoxContainer]}>
               <View
                 style={[
@@ -367,33 +388,71 @@ import addPushSchedule from "../../modules/pushMessage/addPushSchedule";
               </View>
             </View>
 
+            <View style={{ height: 30 }} />
           </ScrollView>
-        </View>
-      </RenderSafeAreaView>
-    );
-  };
-  
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    inputBox: {
-      borderRadius: 10,
-      paddingHorizontal: 10,
-      paddingVertical: 8,
-      backgroundColor: colors.gray.GR300,
-    },
-    inputBoxContainer: {
-      width: "100%",
-      paddingHorizontal: 8,
-      paddingVertical: 12,
-      backgroundColor: colors.gray.GR200,
-      gap: 8,
-      borderRadius: 20,
-    },
-  });
-  
-  export default CreateScheduleModal;
-  
+        </KeyboardAvoidingView>
+        <DateTimePickerModal
+          isVisible={isVisibleDateModal}
+          mode={"datetime"}
+          onConfirm={(e) => {
+            setNewScheduleUTCString(e);
+            setIsVisibleDateModal(false);
+          }}
+          onCancel={() => {
+            setIsVisibleDateModal(false);
+          }}
+          locale="ko"
+          confirmTextIOS="확인"
+          cancelTextIOS="취소"
+          date={newScheduleUTCString}
+        />
+        <DateTimePickerModal
+          isVisible={isVisibleIntervalDateModal}
+          mode={"datetime"}
+          onConfirm={(e) => {
+            setNewScheduleEndRepetitionUTCString(e);
+            setIsVisibleIntervalDateModal(false);
+          }}
+          onCancel={() => {
+            setIsVisibleIntervalDateModal(false);
+          }}
+          locale="ko"
+          confirmTextIOS="확인"
+          cancelTextIOS="취소"
+          date={newScheduleEndRepetitionUTCString ?? new Date(date)}
+        />
+      </View>
+    </RenderSafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  inputBox: {
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: colors.gray.GR300,
+  },
+  inputBoxContainer: {
+    width: "100%",
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+    backgroundColor: colors.gray.GR200,
+    gap: 8,
+    borderRadius: 20,
+  },
+  inputRowContainer: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+  },
+});
+
+export default CreateScheduleModal;

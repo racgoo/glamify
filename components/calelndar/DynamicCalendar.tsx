@@ -66,6 +66,10 @@ const DynamicCalendar = ({
   const scheduleResult =  getScheduleQuery.data;
 
   useEffect(()=>{
+    console.log(JSON.stringify(scheduleResult))
+  },[scheduleResult])
+
+  useEffect(()=>{
     if(scheduleResult?.data?.scheduleList){
       setMarkedDates(transformScheduleToMarkData(scheduleResult?.data?.scheduleList));
     }

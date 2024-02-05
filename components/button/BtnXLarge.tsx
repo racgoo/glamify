@@ -136,21 +136,33 @@ const styles = StyleSheet.create({
   },
   solidHighEnabledButton: {
     backgroundColor: colors.orange.OR500,
+    borderColor: colors.orange.OR500,
+    borderWidth: 1,
   },
   solidHighDisabledButton: {
     backgroundColor: colors.gray.GR200, //colors에 추가해야함, 디자인 예시라 아직 design system에 없음
+    borderColor: colors.gray.GR200,
+    borderWidth: 1,
   },
   solidHighPressedButton: {
     backgroundColor: colors.orange.OR700,
+    borderColor: colors.orange.OR500,
+    borderWidth: 1,
   },
   solidLowEnabledButton: {
     backgroundColor: colors.gray.GR150,
+    borderColor: colors.gray.GR150,
+    borderWidth: 1,
   },
   solidLowDisabledButton: {
     backgroundColor: colors.gray.GR200, //colors에 추가해야함, 디자인 예시라 아직 design system에 없음
+    borderColor: colors.gray.GR200,
+    borderWidth: 1,
   },
   solidLowPressedButton: {
     backgroundColor: colors.gray.GR200,
+    borderColor: colors.gray.GR200,
+    borderWidth: 1,
   },
   outlineHighEnabledButton: {
     backgroundColor: colors.gray.White,

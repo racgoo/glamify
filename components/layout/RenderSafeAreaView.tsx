@@ -18,6 +18,7 @@ interface RenderSafeAreaViewType {
   style?: ViewStyle;
   isNeedTouchableWithoutFeedback?: boolean;
   isLoading?: boolean;
+  isKeyboardAvoidingView?: boolean;
 }
 
 const RenderSafeAreaView = ({
@@ -27,6 +28,14 @@ const RenderSafeAreaView = ({
   isLoading = false,
 }: RenderSafeAreaViewType) => {
   let dimensions = Dimensions.get("screen");
+  if(isNeedTouchableWithoutFeedback){
+    children=<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        {children}
+    </TouchableWithoutFeedback>
+  }
+  
+    
+  
   return (
     <SafeAreaView style={[styles.root, style]}>
       <Fragment>
@@ -47,14 +56,15 @@ const RenderSafeAreaView = ({
             <Spinner />
           </View>
         )} */}
-
-        {isNeedTouchableWithoutFeedback ? (
+        {children}
+        {/* {isNeedTouchableWithoutFeedback ? (
           <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-            {children}
+            
+              {children}
           </TouchableWithoutFeedback>
         ) : (
           children
-        )}
+        )} */}
       </Fragment>
     </SafeAreaView>
   );

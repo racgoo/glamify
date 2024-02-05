@@ -17,6 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 import { API_healthCheck } from "../../controller/api";
 import { useFocusEffect } from "expo-router";
 import { Text } from "react-native";
+import CommonTextInput from "../../components/text/CommonTextInput";
 
 function Home() {
   const flatListRef = useRef<any>(null);
@@ -59,9 +60,13 @@ function Home() {
   // },[healthCheck.data?.data.data]);
 
   let dummy = [1,2,3,4,5,6,7,8,10,10];
+  const [test,setTest] = useState("0");
   return (
-    <RenderSafeAreaView>
+    <RenderSafeAreaView isNeedTouchableWithoutFeedback={true} >
       <View style={styles.mainContainer}>
+        <View style={{borderWidth: 1}} >
+          <CommonTextInput hideEraser={true} isNumberPad={true} text={test} setText={setTest} />
+        </View>
 
         {/* <View style={{ width: "100%",backgroundColor: "red", gap: 20, flexDirection: "row", flexWrap: "wrap"}} >
           {

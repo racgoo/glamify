@@ -9,10 +9,13 @@ import {
   View,
   TouchableOpacity,
   Pressable,
+  NativeSyntheticEvent,
+  TextInputFocusEventData,
 } from "react-native";
 import colors from "../../styles/colors";
 import fonts from "../../styles/fonts";
 import TextDeleteIcon from "../../assets/icons/cancel/TextDeleteIcon";
+import { Keyboard } from "react-native";
 interface commonTextProps extends TextStyle {
   color: string;
   type:
@@ -35,11 +38,13 @@ interface commonTextProps extends TextStyle {
   numberOfLines?: number;
   style: ViewStyle;
   placeholder?: string;
-  onFocus?: () => void;
+  onFocus?: (event?: NativeSyntheticEvent<TextInputFocusEventData>) => void;
   onBlur?: () => void;
   placeholderTextColor?: string;
   autoFocus?: boolean;
   deleteButtonOffset?: number;
+  isNumberPad?: boolean;
+  hideEraser?: boolean;
 }
 
 const CommonTextInput = ({
@@ -64,50 +69,67 @@ const CommonTextInput = ({
   onBlur,
   autoFocus = false,
   deleteButtonOffset = 4,
+  isNumberPad = false,
+  hideEraser = false,
   ...props
 }: commonTextProps) => {
   return (
-    <View style={{ width: "100%", justifyContent: "center" }}>
-        <TextInput
-          style={[
-            {
-              ...fonts[type],
-              color,
-              textAlign,
-              includeFontPadding: false,
-              marginTop,
-              marginBottom,
-              marginLeft,
-              marginRight,
-              marginHorizontal,
-              marginVertical,
-              textDecorationLine,
-            },
-            style,
-          ]}
-          numberOfLines={numberOfLines}
-          placeholder={placeholder}
-          placeholderTextColor={placeholderTextColor}
-          {...props}
-          value={text}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          multiline={multiline}
-          autoFocus={autoFocus}
-          onChangeText={(text) => {
-            setText(text);
+    <View
+      style={{
+        width: style.width ?? "auto",
+        marginTop,
+        marginBottom,
+        marginLeft,
+        marginRight,
+        marginHorizontal,
+        marginVertical,
+        justifyContent: "center",
+      }}
+    >
+      <TextInput
+        style={[
+          {
+            ...fonts[type],
+            color,
+            textAlign,
+            includeFontPadding: false,
+            textDecorationLine,
+          },
+          style,
+        ]}
+        numberOfLines={numberOfLines}
+        placeholder={placeholder}
+        placeholderTextColor={placeholderTextColor}
+        {...props}
+        value={text}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        multiline={multiline}
+        autoFocus={autoFocus}
+        // returnKeyType="done"
+        blurOnSubmit={false}
+        onSubmitEditing={() => {
+          Keyboard.dismiss();
+        }}
+        onChangeText={(text) => {
+          setText(text);
+        }}
+        keyboardType={isNumberPad ? "number-pad" : "default"}
+      />
+      {text !== "" && hideEraser === false && (
+        <Pressable
+          onPress={() => setText("")}
+          style={{
+            position: "absolute",
+            width: 20,
+            height: 20,
+            right: deleteButtonOffset,
           }}
-        />
-        {text!=="" && 
-        <Pressable 
-          onPress={()=>setText("")}
-          style={{position: "absolute",width: 20, height: 20, right: deleteButtonOffset}} 
-          hitSlop={{top: 3,right:3,bottom:3,left:3 }}
+          hitSlop={{ top: 3, right: 3, bottom: 3, left: 3 }}
         >
           <TextDeleteIcon />
         </Pressable>
-        }
-        
+      )}
     </View>
   );
 };
@@ -121,7 +143,7 @@ CommonTextInput.defaultProps = {
   color: colors.gray.White,
   type: "body1_B",
   textAlign: "left",
-  textAlignVertical: 'top',
+  textAlignVertical: "top",
   paddingTop: 0,
   paddingBottom: 0,
   marginTop: 0,
