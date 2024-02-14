@@ -19,6 +19,15 @@ import { calendarAtom, requestSetCalendarItem } from "../../recoil/recoil";
 import setCurrentCalendar from "../../action/calendar/setCurrentCalendar";
 import { useRecoilValue } from "recoil";
 
+const AllCalendar = {
+    user_id: 0,
+    calendar_id: 0,
+    title: "전체 모아보기",
+    description: "",
+    register_date: "",
+    update_date: ""
+}
+
 const SelectCalendarModal = () => {
     const calendarRecoilValue = useRecoilValue(calendarAtom);
     const getCalendarListQuery = useQuery({
@@ -83,12 +92,15 @@ const SelectCalendarModal = () => {
 
     return <RenderSafeAreaView >
         <View style={[styles.container]} >
-            <FlatList
-                style={[styles.flatListContinaer]}
-                data={calendarListResult?.data?.calendarList}
-                renderItem={renderItem}
-                ItemSeparatorComponent={()=><View style={{height: 4}} />}
-            />
+            {
+                calendarListResult?.data?.calendarList &&
+                <FlatList
+                    style={[styles.flatListContinaer]}
+                    data={[AllCalendar,...(calendarListResult?.data?.calendarList)]}
+                    renderItem={renderItem}
+                    ItemSeparatorComponent={()=><View style={{height: 4}} />}
+                />
+            }
             <BtnXLarge
                 active={true}
                 type="SolidHigh"

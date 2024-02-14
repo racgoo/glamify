@@ -34,6 +34,7 @@ import { useRecoilValue } from "recoil";
 import { calendarAtom } from "../../recoil/recoil";
 import setCurrentCalendar from "../../action/calendar/setCurrentCalendar";
 import Spinner from "../../assets/animation/Spinner";
+import setSelectedScheduleWithInfoList from "../../action/schedule/setSelectedScheduleWithInfoList";
 function Calendar() {
   const [searchText, setSearchText] = useState<string>("");
   const [moveKeyDate, setMoveKeyDate] = useState(moment().format("YYYY-MM-DD"));
@@ -94,11 +95,12 @@ function Calendar() {
     });
   };
 
-  const handleOpeDetailModal = (date: string) => {
+  const handleOpenDetailModal = (date: string,selectedScheduleWithInfoList: scheduleWithInfoType[]) => {
+    setSelectedScheduleWithInfoList(selectedScheduleWithInfoList);
     router.navigate({
       pathname: "Calendar/CalendarDetailModal",
       params: {
-        date,
+        date
       } as routeType["Calendar/CalendarDetailModal"],
     });
   };
@@ -164,7 +166,8 @@ function Calendar() {
             </TouchableOpacity>
           )}
         </View>
-        <View
+
+        {/* <View
           style={{
             width: "100%",
             paddingHorizontal: 20,
@@ -184,7 +187,7 @@ function Calendar() {
               <TouchableOpacity
               key={schedule.calendar_id}
                onPress={()=>{
-                handleOpeDetailModal(moment(schedule.due_date).format("YYYY-MM-DD"));
+                handleOpenDetailModal(moment(schedule.due_date).format("YYYY-MM-DD"));
               }}
                 style={{borderWidth: 1}}
                >
@@ -212,14 +215,14 @@ function Calendar() {
               </TouchableOpacity>
             ))
           }
-          
-        </View>
+        </View> */}
+
         <View style={{ height: isFocusOnInput ? 0 : "auto" }}>
           {calendarReocilValue.currentCalendar && (
             <DynamicCalendar
               moveKeyDate={moveKeyDate}
               setMoveKeyDate={setMoveKeyDate}
-              handleClick={handleOpeDetailModal}
+              handleClick={handleOpenDetailModal}
               currentCalendar={calendarReocilValue.currentCalendar}
               handleFilter={handleFilter}
             />

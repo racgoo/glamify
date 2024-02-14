@@ -1,43 +1,15 @@
 import axios, { AxiosResponse, AxiosInterceptorOptions } from "axios";
-// import forceLogout from "../modules/auth/forceLogout";
-// import requestPopupOpen from "../actions/popup/requestPopupOpen";
 import { getRecoil } from "recoil-nexus";
 import { userAtom } from "../recoil/recoil";
 import requestPopupOpen from "../action/popup/requestPopupOpen";
-import {
-  API_authByRefreshToken_request_type,
-  API_authByRefreshToken_response_type,
-  API_checkSchedule_request_type,
-  API_checkSchedule_response_type,
-  API_createCalendar_request_type,
-  API_createCalendar_response_type,
-  API_createSchedule_request_type,
-  API_createSchedule_response_type,
-  API_deleteCalendar_request_type,
-  API_deleteCalendar_response_type,
-  API_deleteSchedule_request_type,
-  API_deleteSchedule_response_type,
-  API_getCalendarList_request_type,
-  API_getCalendarList_response_type,
-  API_getSchedule_request_type,
-  API_getSchedule_response_type,
-  API_healthCheck_request_type,
-  API_healthCheck_response_type,
-  API_kakaoLoginVerify_request_type,
-  API_kakaoLoginVerify_response_type,
-  API_searchSchedule_request_type,
-  API_searchSchedule_response_type,
-  networkStatusType,
-} from "../types/api";
-import requestLoadingClose from "../action/loading/requestLoadingClose";
+
 import requestLogout from "../action/auth/requestLogout";
 import requestAuthByRefreshToken from "../action/auth/requestAuthByRefreshToken";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import requestLoadingOpen from "../action/loading/requestLoadingOpen";
-// export const backendUrl = "http://dating.batro.org:4000/";
-export const backendUrl = "http://172.20.10.2:4000/";
-// export const backendUrl = "http://192.168.35.7:4000/";
 
+export const backendUrl = "http://dating.batro.org:4000/";
+// export const backendUrl = "http://172.20.10.2:4000/";
+// export const backendUrl = "http://192.168.35.7:4000/";
 // export const backendUrl = "http://192.168.35.7:4000/";
 
 export const backendWss = "wss://dating.batro.org/";
@@ -99,9 +71,6 @@ const responseMiddleware = async (response: AxiosResponse) => {
           description: statusMessage,
           type: "confirm",
         });
-      // default:
-      //   requestPopupOpen("",response.data.message,"cancel",()=>{});
-      //   break;
     }
   }
   return response;

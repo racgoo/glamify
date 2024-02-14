@@ -89,7 +89,6 @@ const CreateScheduleModal = () => {
     enabled: false,
   });
 
-  const scrollviewRef = useRef<KeyboardAwareScrollView>(null);
   const [newScheduleTitle, setNewScheduleTitle] = useState("");
   const [newSchedulePlace, setNewSchedulePlace] = useState("");
   const [newScheduleDescription, setNewScheduleDescription] = useState("");
@@ -122,7 +121,7 @@ const CreateScheduleModal = () => {
         </TouchableOpacity>
       ),
     });
-  }, [newScheduleTitle, newScheduleDescription, newScheduleUTCString]);
+  }, [newScheduleTitle, newScheduleDescription, newScheduleUTCString,newSchedulePlace,isRepetition,repetitionType,repetitionInterval,weeklyDayMask,newScheduleEndRepetitionUTCString]);
 
   const handleSave = async () => {
     Keyboard.dismiss();
@@ -132,6 +131,11 @@ const CreateScheduleModal = () => {
       title: newScheduleTitle,
       description: newScheduleDescription,
       due_date: momentToUtcString(moment(newScheduleUTCString)),
+      place: newSchedulePlace,
+      repeat_type: isRepetition ? repetitionType : "ONCE",
+      interval_num: parseInt(repetitionInterval),
+      weekly_days_mask: weeklyDayMask,
+      interval_due_date: newScheduleEndRepetitionUTCString ? momentToUtcString(moment(newScheduleEndRepetitionUTCString)) : "" 
     })
       .then(async (res) => {
         let { code, data } = res.data;
@@ -144,7 +148,7 @@ const CreateScheduleModal = () => {
         }
       })
       .finally(() => {
-        requestLoadingClose();
+        // requestLoadingClose();
       });
   };
 

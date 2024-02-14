@@ -13,7 +13,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { API_checkSchedule, API_deleteSchedule, API_getSchedule } from "../../controller/api";
 import momentToUtcString from "../../modules/time/momentToUtcString";
 import { useRecoilValue } from "recoil";
-import { calendarAtom } from "../../recoil/recoil";
+import { calendarAtom, scheduleAtom } from "../../recoil/recoil";
 import checkIsSameDay from "../../modules/time/checkIsSameDay";
 import ScheduleItem from "../../components/slider/ScheduleItem";
 import requestPopupOpen from "../../action/popup/requestPopupOpen";
@@ -21,14 +21,17 @@ import requestLoadingClose from "../../action/loading/requestLoadingClose";
 import { useEffect, useState } from "react";
 import cancelPushSchedule from "../../modules/pushMessage/cancelPushSchedule";
 import addPushSchedule from "../../modules/pushMessage/addPushSchedule";
+import momentResetTime from "../../modules/time/momentResetTime";
+import setSelectedScheduleWithInfoList from "../../action/schedule/setSelectedScheduleWithInfoList";
+import copy from "../../modules/data/copy";
 
 const CalendarDetailModal = () => {
   const queryClient = useQueryClient();
   const calendarRecoilValue = useRecoilValue(calendarAtom);
+  const { selectedScheduleWithInfoList } = useRecoilValue(scheduleAtom);
   const { date } = serializeParams(
     useLocalSearchParams()
   ) as routeType["Calendar/CalendarDetailModal"];
-
   const handlePress = async () => {
     router.navigate({
       pathname: "Schedule/CreateScheduleModal",
@@ -40,100 +43,92 @@ const CalendarDetailModal = () => {
     queryKey: ["API_getSchedule",calendarRecoilValue.currentCalendar?.calendar_id],
     queryFn: () => API_getSchedule({
       calendar_id: calendarRecoilValue.currentCalendar?.calendar_id as number,
-      target_date: momentToUtcString(moment(date))
+      target_date: momentToUtcString(momentResetTime(moment(date)))
     }).then(res => res.data),
     enabled: false
   });
   
   const scheduleResult =  getScheduleQuery.data;
-  const scheduleList =  scheduleResult?.data?.scheduleList.filter(schedule => checkIsSameDay(schedule.due_date,moment.utc(date))); 
+  // const scheduleList =  scheduleResult?.data?.scheduleList.filter(schedule => checkIsSameDay(schedule.due_date,moment.utc(date))); 
 
-  const handleDeleteModalOpen = (schedule: scheduleType) => {
+
+  const handleDeleteModalOpen = (schedule: scheduleType,index: number) => {
     requestPopupOpen(
         {
             title: "정말 삭제하겠습니까?",
             description: "다시 복구하기 어렵습니다.",
             type: "both",
             action: ()=> {
-              handleDeleteSchedule(schedule)
+              handleDeleteSchedule(schedule,index)
             }
         }
     );
   }
   
-  const handleDeleteSchedule = async (schedule: scheduleType) => {
+  const handleDeleteSchedule = async (schedule: scheduleType,index: number) => {
     requestLoadingOpen();
+    handleChangeCacheData(index,"delete");
     API_deleteSchedule({schedule_id: schedule.schedule_id})
-    .then(async()=>{
+    .then(async(res)=>{
         await getScheduleQuery.refetch();
         cancelPushSchedule(schedule);
+        let {code,data,message} = res.data;
+        if(code !== 200){
+          router.goBack();
+          requestPopupOpen({type: "cancel", title: "", description: "오류가 발생했습니다."})
+        }
     })
     .finally(()=>{
         requestLoadingClose();
     })
   }
 
-  const handleChangeCacheData = (schedule: scheduleType) => {
-    queryClient.setQueryData(
-      ["API_getSchedule", calendarRecoilValue.currentCalendar?.calendar_id],
-      (oldGetScheduleQueryData: typeof getScheduleQuery.data | undefined) => {
-        if (oldGetScheduleQueryData?.data?.scheduleList) {
-          let nextData = oldGetScheduleQueryData.data.scheduleList.map((item) => {
-            if (item.schedule_id === schedule.schedule_id) {
-              return { ...item, is_done: !item.is_done };
-            }
-            return item;
-          });
-          return { ...oldGetScheduleQueryData, data: { ...oldGetScheduleQueryData.data, scheduleList: nextData } };
-        }
-        return oldGetScheduleQueryData;
-      }
-    );
+  const handleChangeCacheData = (index: number, type: "delete" | "check" ) => {
+    let newData = copy(selectedScheduleWithInfoList);
+    switch(type){
+      case "check":
+          newData[index].info.done_Yn = (newData[index].info.done_Yn === "Y" ? "N" : "Y");
+          
+          break;
+        case "delete":
+          newData.splice(index,1);
+          break;
+    }
+    setSelectedScheduleWithInfoList(newData);
+    
   }
 
-  const handleCheckSchedule = (schedule: scheduleType,index: number) => {
-    handleChangeCacheData(schedule);
-    API_checkSchedule({schedule_id: schedule.schedule_id})
+  const handleCheckSchedule = (scheduleWithInfo: scheduleWithInfoType,index: number) => {
+    handleChangeCacheData(index,"check");
+    API_checkSchedule({schedule_id: scheduleWithInfo.schedule.schedule_id, target_date: scheduleWithInfo.info.target_date})
     .then(async(res)=>{
       let {code} = res.data;
       if(code!==200){
-        handleChangeCacheData(schedule);
+        handleChangeCacheData(index,"check");
       }else{
-        if(schedule.is_done===true){
-          cancelPushSchedule(schedule);
+        getScheduleQuery.refetch();
+        if(scheduleWithInfo.info.done_Yn==="Y"){
+          //반복일때 해당거만 끄도록 수정행함. 지금은 info가 하나라도done이면 iterval 자체를 종료시킴
+          cancelPushSchedule(scheduleWithInfo.schedule);
         }else{
-          addPushSchedule(schedule);
+          addPushSchedule(scheduleWithInfo.schedule);
         }
       }
     })
   }
 
-  const renderListItem = (schedule: scheduleType,index: number) => {
+  const renderListItem = (scheduleWithInfo: scheduleWithInfoType,index: number) => {
     return ( <ScheduleItem
-        onDelete={handleDeleteModalOpen}
-        onPress={(schedule: scheduleType)=>{
-          handleCheckSchedule(schedule,index);
+        onDelete={()=>{
+          handleDeleteModalOpen(scheduleWithInfo.schedule,index);
         }}
-        schedule={schedule}
-        isChecked={schedule.is_done}
+        onPress={(schedule: scheduleType)=>{
+          handleCheckSchedule(scheduleWithInfo,index);
+        }}
+        schedule={scheduleWithInfo.schedule}
+        isChecked={scheduleWithInfo.info.done_Yn==="Y"}
+        isInterval={scheduleWithInfo.schedule.repeat_type==="ONCE" ? false : true}
       />
-      // <View style={styles.scheduleContainer}>
-      //   <CommonText
-      //     text={schedule.title}
-      //     type="Title1B24"
-      //     color={colors.gray.GR900}
-      //   />
-      //   <CommonText
-      //     text={schedule.description}
-      //     type="Body5S14"
-      //     color={colors.gray.GR700}
-      //   />
-      //   <CommonText
-      //     text={schedule.due_date}
-      //     type="Title1B24"
-      //     color={colors.gray.GR500}
-      //   />
-      // </View>
     );
   };
 
@@ -150,7 +145,7 @@ const CalendarDetailModal = () => {
           showsVerticalScrollIndicator={false}
           horizontal={false}
           style={{ width: "100%"}}
-          data={scheduleList}
+          data={selectedScheduleWithInfoList}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
           keyExtractor={(_, index) => String(index)}
           contentContainerStyle={{

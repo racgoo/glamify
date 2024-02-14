@@ -7,7 +7,7 @@ import Constants from 'expo-constants';
 const addPushSchedule = async (schedule: scheduleType, repeatInterval: false | number = false) => {
     const NOTIFICATION_ID = schedule.schedule_id.toString();
     const NOTIFICATION_ID_PREVIEW = schedule.schedule_id.toString()+"[preview]";
-    console.log(schedule,moment(schedule.due_date),moment(schedule.due_date).diff(moment(), 'seconds'))
+    // console.log(schedule,moment(schedule.due_date),moment(schedule.due_date).diff(moment(), 'seconds'))
   // Expo Background Fetch 설정
   if (Constants.manifest && repeatInterval) {
     await BackgroundFetch.registerTaskAsync(NOTIFICATION_ID, {

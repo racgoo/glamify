@@ -23,7 +23,12 @@ interface systemAtomProps {
 }
 
 interface calendarAtomProps {
-    currentCalendar: null | calendarType 
+    selectedDate?: string | null;
+    currentCalendar?: null | calendarType ;
+}
+
+interface scheduleAtomProps {
+    selectedScheduleWithInfoList: scheduleWithInfoType[];
 }
 
 interface locationProps {
@@ -78,7 +83,15 @@ export const systemAtom = atom<systemAtomProps>({
 export const calendarAtom = atom<calendarAtomProps>({
     key: 'calendarAtom',
     default: {
-        currentCalendar: null 
+        currentCalendar: null,
+        selectedDate: null,
+    }
+});
+
+export const scheduleAtom = atom<scheduleAtomProps>({
+    key: 'scheduleAtom',
+    default: {
+        selectedScheduleWithInfoList: []
     }
 });
 
@@ -126,7 +139,16 @@ export const requestSetCalendarItem = selector({
     key: "requestSetCalendarItem",
     get: ({ get })=> get(calendarAtom),
     set: ({ set,get },calendarItemObject) => {
-        set(calendarAtom,(prevState) => ({...prevState,...calendarItemObject}));
+        let calendar = get(calendarAtom);
+        set(calendarAtom,({...calendar,...calendarItemObject}));
+    }
+});
+
+export const requestSetScheduleItem = selector({
+    key: "requestSetScheduleItem",
+    get: ({ get })=> get(scheduleAtom),
+    set: ({ set,get },scheduleItemObject) => {
+        set(scheduleAtom,(prevState) => ({...prevState,...scheduleItemObject}));
     }
 });
 

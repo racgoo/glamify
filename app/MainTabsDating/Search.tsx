@@ -15,7 +15,7 @@ import ProfileListItem from "../../components/profile/ProfileListItem";
 import { useMutation, useMutationState, useQuery } from "@tanstack/react-query";
 import { API_healthCheck } from "../../controller/api";
 import { useFocusEffect } from "expo-router";
-import { API_healthCheck_request_type, API_healthCheck_response_type } from "../../types/api";
+import { API_healthCheck_request_type, API_healthCheck_response_type } from "../../@types/api";
 import { AxiosResponse } from "axios";
 import BtnXLarge from "../../components/button/BtnXLarge";
 // const queryClient = useQueryClient();

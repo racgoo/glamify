@@ -18,6 +18,8 @@ import { API_healthCheck } from "../../controller/api";
 import { useFocusEffect } from "expo-router";
 import { Text } from "react-native";
 import CommonTextInput from "../../components/text/CommonTextInput";
+import momentToUtcString from "../../modules/time/momentToUtcString";
+import moment from "moment";
 
 function Home() {
   const flatListRef = useRef<any>(null);
@@ -78,7 +80,7 @@ function Home() {
 
 
         <CommonText
-          text={"준비중"}
+          text={momentToUtcString(moment("2024-02-13"))}
           color={colors.gray.GR800}
           type="Title1B24"
          /> 

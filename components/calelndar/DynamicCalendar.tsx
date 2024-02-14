@@ -29,9 +29,13 @@ import { useQuery } from "@tanstack/react-query";
 import { API_getSchedule } from "../../controller/api";
 import momentToUtcString from "../../modules/time/momentToUtcString";
 import transformScheduleToMarkData from "../../modules/transformer/transformScheduleToMarkData";
+import { useRecoilValue } from "recoil";
+import { calendarAtom, scheduleAtom } from "../../recoil/recoil";
+import setSelectedDate from "../../action/calendar/setSelectedDate";
+import setSelectedScheduleWithInfoList from "../../action/schedule/setSelectedScheduleWithInfoList";
 
 interface DynamicCalendarProps {
-  handleClick: (date: string) => void;
+  handleClick: (date: string, selectedScheduleWithInfoList: scheduleWithInfoType[]) => void;
   moveKeyDate: string;
   setMoveKeyDate: (newKey: string) => void;
   // markedDates: {[key: string]: {dots: {key: string; color: string; description: string; time: string;}[], marked: boolean}}
@@ -46,6 +50,8 @@ const DynamicCalendar = ({
   currentCalendar,
   handleFilter = () => {}
 }: DynamicCalendarProps) => {
+
+  const { selectedDate } = useRecoilValue(calendarAtom);;
   const flatListRef = useRef<FlatList>(null);
   const calendarListRef = useRef<any>(null);
   const [isReady, setIsReady] = useState(false);
@@ -66,12 +72,15 @@ const DynamicCalendar = ({
   const scheduleResult =  getScheduleQuery.data;
 
   useEffect(()=>{
-    console.log(JSON.stringify(scheduleResult))
-  },[scheduleResult])
-
-  useEffect(()=>{
     if(scheduleResult?.data?.scheduleList){
-      setMarkedDates(transformScheduleToMarkData(scheduleResult?.data?.scheduleList));
+      let newMarkedDates = transformScheduleToMarkData(scheduleResult?.data?.scheduleList);
+      if(selectedDate && newMarkedDates[selectedDate]){
+        setSelectedScheduleWithInfoList(dotsToScheduleWithInfoList(newMarkedDates[selectedDate].dots));
+      }
+      // if(selectedDate){
+      //   selectedDate
+      // }
+      setMarkedDates(newMarkedDates);
     }
   },[scheduleResult?.data?.scheduleList]);
 
@@ -86,11 +95,24 @@ const DynamicCalendar = ({
   };
   LocaleConfig.defaultLocale = "kr";
 
-  
+  useEffect(()=>{
+    // console.log(JSON.stringify(scheduleResult))
+  },[scheduleResult]);
 
   useEffect(() => {
     setMoveKeyDate("");
   }, [moveKeyDate]);
+
+  const dotsToScheduleWithInfoList = (dots: dotType[]) => {
+    if(dots && dots.length!==0){
+      return dots.map(dot => ({
+        schedule: dot.schedule,
+        info: dot.currentDateScheduleInfo
+      }));
+    }else{
+      return [];
+    }
+  }
 
   const renderDay:
     | React.ComponentType<
@@ -101,12 +123,15 @@ const DynamicCalendar = ({
       >
     | undefined = ({ date,today, state, marking }) => {
     let isToday = (today===date?.dateString);
+    let dots: dotType[] = marking?.dots as dotType[];
     return (
       <TouchableOpacity
         activeOpacity={0.5}
         style={{ width: "100%", height: 80,borderRadius: 8, borderWidth: 2, borderColor:  isToday ? colors.orange.OR500 : "#FFFFFF", paddingHorizontal: 1}}
         onPress={() => {
-          handleClick(date?.dateString as string);
+          let currentShortDate = date?.dateString as string;
+          setSelectedDate(currentShortDate);
+          handleClick(currentShortDate,dotsToScheduleWithInfoList((marking?.dots as dotType[])));
         }}
       >
         <View style={{ alignItems: "center" }}>
@@ -116,7 +141,7 @@ const DynamicCalendar = ({
             type="Body5S14"
           />
           {marking &&
-            marking.dots?.slice(0,4).map((dot, index) => (
+            dots?.filter(dot => dot.currentDateScheduleInfo.done_Yn==="N")?.slice(0,4).map((dot, index) => (
               <View
                 key={index}
                 style={{
@@ -219,6 +244,7 @@ const DynamicCalendar = ({
             </View>
           </View>,
           <CalendarList
+            
             ref={calendarListRef}
             onMonthChange={(event) => {
               setmonthDate(`${event.year}-${event.month}-01`);
