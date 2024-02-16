@@ -9,13 +9,19 @@ import CommonText from "../components/text/CommonText";
 import getExpoToken from "../modules/pushMessage/getExpoToken";
 import addPushListener from "../modules/pushMessage/addPushListener";
 import requestPushMessageScheduleReset from "../action/pushMessage/requestPushMessageScheduleReset";
+import { API_updateExpoPushToken } from "../controller/api";
+import requestPopupOpen from "../action/popup/requestPopupOpen";
+import {  useRecoilValue } from "recoil";
+import { userAtom } from "../recoil/recoil";
+import sleep from "../modules/time/sleep";
+import { getRecoil } from "recoil-nexus";
 
 LogBox.ignoreAllLogs(true);
 LogBox.ignoreLogs(["..."]);
 
 
 const FirstPage = () => {
-
+  const userRecoilValue = useRecoilValue(userAtom);
   const handleStart = (type: "login" | "home") => {
     switch(type){
         case "login":
@@ -34,6 +40,12 @@ const FirstPage = () => {
         const refresh_token = await AsyncStorage.getItem("refresh_token");
         if(refresh_token){
             isSuccess = await requestAuthByRefreshToken(refresh_token);
+        }
+        sleep(2000);
+        let user = getRecoil(userAtom);
+        let expo_push_token = await getExpoToken();
+        if(expo_push_token){
+          await API_updateExpoPushToken({expo_push_token: expo_push_token,access_token: user.access_token});
         }
         handleStart(isSuccess===true ? "home" : "login");
     }

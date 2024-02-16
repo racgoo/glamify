@@ -19,8 +19,6 @@ import ScheduleItem from "../../components/slider/ScheduleItem";
 import requestPopupOpen from "../../action/popup/requestPopupOpen";
 import requestLoadingClose from "../../action/loading/requestLoadingClose";
 import { useEffect, useState } from "react";
-import cancelPushSchedule from "../../modules/pushMessage/cancelPushSchedule";
-import addPushSchedule from "../../modules/pushMessage/addPushSchedule";
 import momentResetTime from "../../modules/time/momentResetTime";
 import setSelectedScheduleWithInfoList from "../../action/schedule/setSelectedScheduleWithInfoList";
 import copy from "../../modules/data/copy";
@@ -71,7 +69,7 @@ const CalendarDetailModal = () => {
     API_deleteSchedule({schedule_id: schedule.schedule_id})
     .then(async(res)=>{
         await getScheduleQuery.refetch();
-        cancelPushSchedule(schedule);
+        // cancelPushSchedule(schedule);
         let {code,data,message} = res.data;
         if(code !== 200){
           router.goBack();
@@ -107,12 +105,12 @@ const CalendarDetailModal = () => {
         handleChangeCacheData(index,"check");
       }else{
         getScheduleQuery.refetch();
-        if(scheduleWithInfo.info.done_Yn==="Y"){
-          //반복일때 해당거만 끄도록 수정행함. 지금은 info가 하나라도done이면 iterval 자체를 종료시킴
-          cancelPushSchedule(scheduleWithInfo.schedule);
-        }else{
-          addPushSchedule(scheduleWithInfo.schedule);
-        }
+        // if(scheduleWithInfo.info.done_Yn==="Y"){
+        //   //반복일때 해당거만 끄도록 수정행함. 지금은 info가 하나라도done이면 iterval 자체를 종료시킴
+        //   cancelPushSchedule(scheduleWithInfo.schedule);
+        // }else{
+        //   addPushSchedule(scheduleWithInfo.schedule);
+        // }
       }
     })
   }

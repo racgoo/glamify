@@ -57,6 +57,7 @@ const DynamicCalendar = ({
   const [isReady, setIsReady] = useState(false);
   const [monthDate, setmonthDate] = useState(moment().format("YYYY-MM-DD"));
   const [markedDates,setMarkedDates] = useState<markType>({});
+
   const getScheduleQuery = useQuery({
     queryKey: ["API_getSchedule",currentCalendar.calendar_id],
     queryFn: () => API_getSchedule({
@@ -68,6 +69,7 @@ const DynamicCalendar = ({
   useEffect(()=>{
     getScheduleQuery.refetch();
   },[monthDate,currentCalendar]);
+
   const isScheduleLoading = getScheduleQuery.isLoading;
   const scheduleResult =  getScheduleQuery.data;
 

@@ -63,6 +63,12 @@ type API_authByRefreshToken_response_type = defaultApiResponseType<{
   refresh_token: string;
 }>;
 
+interface API_updateExpoPushToken_request_type extends defaultApiRequestType {
+  expo_push_token: string;
+}
+
+type API_updateExpoPushToken_response_type = defaultApiResponseType<{}>;
+
 interface API_getCalendarList_request_type extends defaultApiRequestType {}
 
 type API_getCalendarList_response_type = defaultApiResponseType<{

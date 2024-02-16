@@ -30,7 +30,6 @@ import router from "../../references/router";
 import momentToUtcString from "../../modules/time/momentToUtcString";
 import { useQuery } from "@tanstack/react-query";
 import serializeParams from "../../modules/params/serializeParams";
-import addPushSchedule from "../../modules/pushMessage/addPushSchedule";
 import CommonSwitch from "../../components/CommonSwitch";
 import BtnXLarge from "../../components/button/BtnXLarge";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -141,9 +140,9 @@ const CreateScheduleModal = () => {
         let { code, data } = res.data;
         if (code === 200) {
           await getScheduleQuery.refetch();
-          if (data?.newSchedule) {
-            await addPushSchedule(data.newSchedule);
-          }
+          // if (data?.newSchedule) {
+          //   await addPushSchedule(data.newSchedule);
+          // }
           router.goBack();
         }
       })

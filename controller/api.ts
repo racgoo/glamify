@@ -130,6 +130,11 @@ export const API_authByRefreshToken = (
   return postRequest("auth/authByRefreshToken", data,{},false);
 };
 
+export const API_updateExpoPushToken = (
+  data: API_updateExpoPushToken_request_type
+): Promise<AxiosResponse<API_updateExpoPushToken_response_type>> => {
+  return postRequest("user/updateExpoPushToken", data,{},false);
+};
 export const API_getCalendarList = (
   data: API_getCalendarList_request_type
 ): Promise<AxiosResponse<API_getCalendarList_response_type>> => {
