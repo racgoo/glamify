@@ -15,6 +15,7 @@ import {  useRecoilValue } from "recoil";
 import { userAtom } from "../recoil/recoil";
 import sleep from "../modules/time/sleep";
 import { getRecoil } from "recoil-nexus";
+import requestPostAuthTasks from "../action/auth/requestPostAuthTasks";
 
 LogBox.ignoreAllLogs(true);
 LogBox.ignoreLogs(["..."]);
@@ -41,12 +42,8 @@ const FirstPage = () => {
         if(refresh_token){
             isSuccess = await requestAuthByRefreshToken(refresh_token);
         }
-        sleep(2000);
-        let user = getRecoil(userAtom);
-        let expo_push_token = await getExpoToken();
-        if(expo_push_token){
-          await API_updateExpoPushToken({expo_push_token: expo_push_token,access_token: user.access_token});
-        }
+        // sleep(2000);
+        await requestPostAuthTasks();
         handleStart(isSuccess===true ? "home" : "login");
     }
     autoLogin();

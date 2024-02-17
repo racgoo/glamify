@@ -14,6 +14,7 @@ import requestLoadingClose from "../action/loading/requestLoadingClose";
 import CommonText from "../components/text/CommonText";
 import colors from "../styles/colors";
 import PushMessageDeepLinking from "../components/dynamicModules/pushMessage/PushMessageDeepLinking";
+import * as Notifications from 'expo-notifications';
 LogBox.ignoreAllLogs(true);
 LogBox.ignoreLogs(["Warning: ..."]);
 
@@ -32,6 +33,14 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 SplashScreen.hideAsync();
 const queryClient = new QueryClient();
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

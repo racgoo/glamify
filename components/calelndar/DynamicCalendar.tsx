@@ -86,7 +86,9 @@ const DynamicCalendar = ({
     }
   },[scheduleResult?.data?.scheduleList]);
 
-
+  // useEffect(()=>{
+  //   console.log(JSON.stringify(scheduleResult))
+  // },[scheduleResult]);
   LocaleConfig.locales["kr"] = {
     monthNames: new Array(12).fill(null).map((_, index) => `${index + 1}월`),
     dayNamesShort: ["일", "월", "화", "수", "목", "금", "토"],
@@ -96,10 +98,6 @@ const DynamicCalendar = ({
     today: "오늘",
   };
   LocaleConfig.defaultLocale = "kr";
-
-  useEffect(()=>{
-    // console.log(JSON.stringify(scheduleResult))
-  },[scheduleResult]);
 
   useEffect(() => {
     setMoveKeyDate("");

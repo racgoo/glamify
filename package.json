@@ -16,6 +16,7 @@
     "build:android": "eas build -p android --clear-cache --auto-submit",
     "build:ios:local": "eas build -p ios --clear-cache --local",
     "build:ios": "eas build -p ios --clear-cache --auto-submit",
+    "build2:ios": "eas build -p ios --clear-provisioning-profile --auto-submit",
     "submit:ios": "eas submit --platform ios",
     "submit:android": "eas submit --platform android"
   },
@@ -63,7 +64,8 @@
     "react-native-webview": "13.2.2",
     "react-query": "^3.39.3",
     "recoil": "^0.7.7",
-    "recoil-nexus": "^0.5.0"
+    "recoil-nexus": "^0.5.0",
+    "expo-device": "~5.4.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
