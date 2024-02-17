@@ -7,9 +7,9 @@ import requestLogout from "../action/auth/requestLogout";
 import requestAuthByRefreshToken from "../action/auth/requestAuthByRefreshToken";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// export const backendUrl = "http://dating.batro.org:4000/";
+export const backendUrl = "http://dating.batro.org:4000/";
 // export const backendUrl = "http://172.20.10.2:4000/";
-export const backendUrl = "http://192.168.35.7:4000/";
+// export const backendUrl = "http://192.168.35.7:4000/";
 // export const backendUrl = "http://192.168.35.7:4000/";
 
 export const backendWss = "wss://dating.batro.org/";
