@@ -10,7 +10,11 @@ import serializeParams from "../../modules/params/serializeParams";
 import BtnXLarge from "../../components/button/BtnXLarge";
 import moment from "moment";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { API_checkSchedule, API_deleteSchedule, API_getSchedule } from "../../controller/api";
+import {
+  API_checkSchedule,
+  API_deleteSchedule,
+  API_getSchedule,
+} from "../../controller/api";
 import momentToUtcString from "../../modules/time/momentToUtcString";
 import { useRecoilValue } from "recoil";
 import { calendarAtom, scheduleAtom } from "../../recoil/recoil";
@@ -22,14 +26,18 @@ import { useEffect, useState } from "react";
 import momentResetTime from "../../modules/time/momentResetTime";
 import setSelectedScheduleWithInfoList from "../../action/schedule/setSelectedScheduleWithInfoList";
 import copy from "../../modules/data/copy";
+import requestDeleteSchedule from "../../action/schedule/requestDeleteSchedule";
 
 const CalendarDetailModal = () => {
-  const queryClient = useQueryClient();
   const calendarRecoilValue = useRecoilValue(calendarAtom);
   const { selectedScheduleWithInfoList } = useRecoilValue(scheduleAtom);
-  const { date } = serializeParams(
+  const { date, selectedCalendar } = serializeParams(
     useLocalSearchParams()
   ) as routeType["Calendar/CalendarDetailModal"];
+
+  const currentCalendar: calendarType = (selectedCalendar ??
+    calendarRecoilValue.currentCalendar) as calendarType;
+
   const handlePress = async () => {
     router.navigate({
       pathname: "Schedule/CreateScheduleModal",
@@ -38,94 +46,91 @@ const CalendarDetailModal = () => {
   };
 
   const getScheduleQuery = useQuery({
-    queryKey: ["API_getSchedule",calendarRecoilValue.currentCalendar?.calendar_id],
-    queryFn: () => API_getSchedule({
-      calendar_id: calendarRecoilValue.currentCalendar?.calendar_id as number,
-      target_date: momentToUtcString(momentResetTime(moment(date)))
-    }).then(res => res.data),
-    enabled: false
+    queryKey: ["API_getSchedule", currentCalendar?.calendar_id],
+    queryFn: () =>
+      API_getSchedule({
+        calendar_id: currentCalendar?.calendar_id as number,
+        target_date: momentToUtcString(momentResetTime(moment(date))),
+      }).then((res) => res.data),
+    enabled: false,
   });
-  
-  const scheduleResult =  getScheduleQuery.data;
-  // const scheduleList =  scheduleResult?.data?.scheduleList.filter(schedule => checkIsSameDay(schedule.due_date,moment.utc(date))); 
 
+  const scheduleResult = getScheduleQuery.data;
+  // const scheduleList =  scheduleResult?.data?.scheduleList.filter(schedule => checkIsSameDay(schedule.due_date,moment.utc(date)));
 
-  const handleDeleteModalOpen = (schedule: scheduleType,index: number) => {
-    requestPopupOpen(
-        {
-            title: "정말 삭제하겠습니까?",
-            description: "다시 복구하기 어렵습니다.",
-            type: "both",
-            action: ()=> {
-              handleDeleteSchedule(schedule,index)
-            }
-        }
-    );
-  }
-  
-  const handleDeleteSchedule = async (schedule: scheduleType,index: number) => {
+  const handleDeleteModalOpen = (schedule: scheduleType, index: number) => {
+    requestPopupOpen({
+      title: "정말 삭제하겠습니까?",
+      description: "다시 복구하기 어렵습니다.",
+      type: "both",
+      action: () => {
+        handleDeleteSchedule(schedule, index);
+      },
+    });
+  };
+
+  const handleDeleteSchedule = async (
+    schedule: scheduleType,
+    index: number
+  ) => {
     requestLoadingOpen();
-    handleChangeCacheData(index,"delete");
-    API_deleteSchedule({schedule_id: schedule.schedule_id})
-    .then(async(res)=>{
-        await getScheduleQuery.refetch();
-        // cancelPushSchedule(schedule);
-        let {code,data,message} = res.data;
-        if(code !== 200){
-          router.goBack();
-          requestPopupOpen({type: "cancel", title: "", description: "오류가 발생했습니다."})
-        }
-    })
-    .finally(()=>{
-        requestLoadingClose();
-    })
-  }
+    handleChangeCacheData(index, "delete");
+    requestDeleteSchedule({
+      schedule,
+      refetchQueries: [getScheduleQuery],
+    });
+  };
 
-  const handleChangeCacheData = (index: number, type: "delete" | "check" ) => {
+  const handleChangeCacheData = (index: number, type: "delete" | "check") => {
     let newData = copy(selectedScheduleWithInfoList);
-    switch(type){
+    switch (type) {
       case "check":
-          newData[index].info.done_Yn = (newData[index].info.done_Yn === "Y" ? "N" : "Y");
-          
-          break;
-        case "delete":
-          newData.splice(index,1);
-          break;
+        newData[index].info.done_Yn =
+          newData[index].info.done_Yn === "Y" ? "N" : "Y";
+
+        break;
+      case "delete":
+        newData.splice(index, 1);
+        break;
     }
     setSelectedScheduleWithInfoList(newData);
-    
-  }
+  };
 
-  const handleCheckSchedule = (scheduleWithInfo: scheduleWithInfoType,index: number) => {
-    handleChangeCacheData(index,"check");
-    API_checkSchedule({schedule_id: scheduleWithInfo.schedule.schedule_id, target_date: scheduleWithInfo.info.target_date})
-    .then(async(res)=>{
-      let {code} = res.data;
-      if(code!==200){
-        handleChangeCacheData(index,"check");
-      }else{
+  const handleCheckSchedule = (
+    scheduleWithInfo: scheduleWithInfoType,
+    index: number
+  ) => {
+    handleChangeCacheData(index, "check");
+    API_checkSchedule({
+      schedule_id: scheduleWithInfo.schedule.schedule_id,
+      target_date: scheduleWithInfo.info.target_date,
+    }).then(async (res) => {
+      let { code } = res.data;
+      if (code !== 200) {
+        handleChangeCacheData(index, "check");
+      } else {
         getScheduleQuery.refetch();
-        // if(scheduleWithInfo.info.done_Yn==="Y"){
-        //   //반복일때 해당거만 끄도록 수정행함. 지금은 info가 하나라도done이면 iterval 자체를 종료시킴
-        //   cancelPushSchedule(scheduleWithInfo.schedule);
-        // }else{
-        //   addPushSchedule(scheduleWithInfo.schedule);
-        // }
       }
-    })
-  }
+    });
+  };
 
-  const renderListItem = (scheduleWithInfo: scheduleWithInfoType,index: number) => {
-    return ( <ScheduleItem
-        onDelete={()=>{
-          handleDeleteModalOpen(scheduleWithInfo.schedule,index);
+  const renderListItem = (
+    scheduleWithInfo: scheduleWithInfoType,
+    index: number
+  ) => {
+    return (
+      <ScheduleItem
+        onDelete={() => {
+          handleDeleteModalOpen(scheduleWithInfo.schedule, index);
         }}
-        onPress={(schedule: scheduleType)=>{
-          handleCheckSchedule(scheduleWithInfo,index);
+        onPress={(schedule: scheduleType) => {
+          handleCheckSchedule(scheduleWithInfo, index);
         }}
         schedule={scheduleWithInfo.schedule}
-        isChecked={scheduleWithInfo.info.done_Yn==="Y"}
-        isInterval={scheduleWithInfo.schedule.repeat_type==="ONCE" ? false : true}
+        isChecked={scheduleWithInfo.info.done_Yn === "Y"}
+        isInterval={
+          scheduleWithInfo.schedule.repeat_type === "ONCE" ? false : true
+        }
       />
     );
   };
@@ -134,22 +139,44 @@ const CalendarDetailModal = () => {
     <RenderSafeAreaView>
       <View style={styles.container}>
         <CommonText
+          text={currentCalendar.title}
+          type="Title2B20"
+          color={colors.blue.Blue400}
+        />
+
+        <CommonText
           text={moment(date).format("YY년 MM월 DD일 일정")}
           type="Title1B24"
           color={colors.red.Red300}
+          marginBottom={4}
         />
 
         <FlatList
           showsVerticalScrollIndicator={false}
           horizontal={false}
-          style={{ width: "100%"}}
+          style={{ width: "100%" }}
           data={selectedScheduleWithInfoList}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
           keyExtractor={(_, index) => String(index)}
           contentContainerStyle={{
             flexGrow: 1,
           }}
-          renderItem={({ item,index }) => renderListItem(item,index)}
+          renderItem={({ item, index }) => renderListItem(item, index)}
+          ListEmptyComponent={
+            <View
+              style={{
+                flex: 1,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <CommonText
+                text={"일정이 없습니다."}
+                type="Body4B14"
+                color={colors.gray.GR750}
+              />
+            </View>
+          }
         />
 
         <BtnXLarge

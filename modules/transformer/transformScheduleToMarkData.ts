@@ -1,13 +1,12 @@
 import moment from "moment";
 import hashStringToRGB from "../rgb/hashStringToRGB";
+import utcStringToMoment from "../time/utcStringToMoment";
 
 const transformScheduleToMarkData = (scheduleList: scheduleType[]): markType => {
     const result: markType = {};
-    // schedule.schedule_infos?.some(info)
-    // console.log(JSON.stringify(scheduleList))
     scheduleList.forEach((schedule) => {
-        schedule.schedule_infos?.some(info => {
-            const dueDate = moment(info.target_date).format("YYYY-MM-DD");
+        schedule.schedule_infos?.some((info,i) => {
+            const dueDate = utcStringToMoment(info.target_date).format("YYYY-MM-DD");
             if (!result[dueDate]) {
                 result[dueDate] = {
                     dots: [],
@@ -22,20 +21,9 @@ const transformScheduleToMarkData = (scheduleList: scheduleType[]): markType => 
                 currentDateScheduleInfo: info
             });
         })
-    // scheduleList.forEach((schedule) => {
-    //     const dueDate = moment(schedule.due_date).format("YYYY-MM-DD");
-    //     if (!result[dueDate]) {
-    //         result[dueDate] = {
-    //             dots: [],
-    //             marked: true,
-    //         };
-    //     }
-    //     result[dueDate].dots.push({
-    //         key: schedule.title,
-    //         description: schedule.description,
-    //         color: hashStringToRGB(schedule.title)
-    //     });
   });
+  
+//   console.log(Object.keys(result))
   return result;
 }
 export default transformScheduleToMarkData;

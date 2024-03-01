@@ -21,7 +21,7 @@ import {
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from "moment";
 import { useLocalSearchParams, useNavigation } from "expo-router";
-import { API_createSchedule, API_getSchedule } from "../../controller/api";
+import { API_createSchedule, API_getCalendarList, API_getSchedule } from "../../controller/api";
 import { useRecoilValue } from "recoil";
 import { calendarAtom } from "../../recoil/recoil";
 import requestLoadingOpen from "../../action/loading/requestLoadingOpen";
@@ -33,13 +33,8 @@ import serializeParams from "../../modules/params/serializeParams";
 import CommonSwitch from "../../components/CommonSwitch";
 import BtnXLarge from "../../components/button/BtnXLarge";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-
-const repetitionTypeJSON = {
-  DAILY: "매일",
-  WEEKLY: "매주",
-  MONTHLY: "매달",
-  YEARLY: "매년",
-};
+import CommonDropPicker from "../../components/picker/CommonDropPicker";
+import repetitionTypeJSON from "../../assets/json/repetitionTypeJSON";
 
 const dayList = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -88,6 +83,14 @@ const CreateScheduleModal = () => {
     enabled: false,
   });
 
+  const getCalendarListQuery = useQuery({
+    queryKey: ["API_getCalendarList"],
+    queryFn: () => API_getCalendarList({}).then(res=>res.data),
+    enabled: false
+  });
+  let calendarList = getCalendarListQuery.data?.data?.calendarList ?? [];
+
+  const [selectedCalendar,setSelectedCalendar] = useState(calendarRecoilValue.currentCalendar?.calendar_id ?? 0);
   const [newScheduleTitle, setNewScheduleTitle] = useState("");
   const [newSchedulePlace, setNewSchedulePlace] = useState("");
   const [newScheduleDescription, setNewScheduleDescription] = useState("");
@@ -111,7 +114,7 @@ const CreateScheduleModal = () => {
   ] = useState<null | Date>(null);
 
   useLayoutEffect(() => {
-    let isInValidForSave = newScheduleTitle.length === 0;
+    let isInValidForSave = newScheduleTitle.length === 0 || selectedCalendar === 0;
     let textColor = isInValidForSave ? colors.gray.GR500 : colors.gray.GR900;
     navigation.setOptions({
       headerRight: () => (
@@ -120,14 +123,14 @@ const CreateScheduleModal = () => {
         </TouchableOpacity>
       ),
     });
-  }, [newScheduleTitle, newScheduleDescription, newScheduleUTCString,newSchedulePlace,isRepetition,repetitionType,repetitionInterval,weeklyDayMask,newScheduleEndRepetitionUTCString]);
+  }, [newScheduleTitle, newScheduleDescription, newScheduleUTCString,newSchedulePlace,isRepetition,repetitionType,repetitionInterval,weeklyDayMask,newScheduleEndRepetitionUTCString,selectedCalendar]);
 
   const handleSave = async () => {
     Keyboard.dismiss();
     requestLoadingOpen();
     API_createSchedule({
-      calendar_id: calendarRecoilValue.currentCalendar?.calendar_id as number,
-      title: newScheduleTitle,
+      calendar_id: selectedCalendar,
+      title: isValidHHMM(newScheduleTitle.substr(0, 4)) ? newScheduleTitle.substr(4) : newScheduleTitle,
       description: newScheduleDescription,
       due_date: momentToUtcString(moment(newScheduleUTCString)),
       place: newSchedulePlace,
@@ -140,14 +143,11 @@ const CreateScheduleModal = () => {
         let { code, data } = res.data;
         if (code === 200) {
           await getScheduleQuery.refetch();
-          // if (data?.newSchedule) {
-          //   await addPushSchedule(data.newSchedule);
-          // }
           router.goBack();
         }
       })
       .finally(() => {
-        // requestLoadingClose();
+        requestLoadingClose();
       });
   };
 
@@ -194,9 +194,21 @@ const CreateScheduleModal = () => {
           style={{ flex: 1, width: "100%" }}
           behavior={"padding"}
           enabled
-          keyboardVerticalOffset={120}
+          // keyboardVerticalOffset={120}
         >
           <ScrollView style={{ flex: 1, width: "100%", paddingHorizontal: 20 }}>
+            {
+              calendarRecoilValue.currentCalendar?.calendar_id === 0 &&
+              <CommonDropPicker 
+                items={calendarList.map(calendar => ({
+                  value: calendar.calendar_id,
+                  label: calendar.title
+                }))}
+                value={selectedCalendar}
+                setValue={setSelectedCalendar}
+                style={{marginVertical: 10}} 
+              />
+            }
             <View style={[styles.inputBoxContainer]}>
               <View style={styles.inputBox}>
                 <CommonTextInput

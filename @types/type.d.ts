@@ -5,7 +5,7 @@ type routeType = {
   "Login/SocialWebviewScreen": { uri: string };
   "Login/LoginScreen": {};
   "Camera/CameraTest": {};
-  "Calendar/CalendarDetailModal": { date: string };
+  "Calendar/CalendarDetailModal": { date: string, selectedCalendar?: calendarType | undefined };
   "Calendar/SelectCalendarModal": { monthDate: string };
   "Calendar/CreateCalendarModal": {};
   "Schedule/CreateScheduleModal": { date: string };

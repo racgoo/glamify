@@ -113,6 +113,13 @@ type API_getSchedule_response_type = defaultApiResponseType<{
   scheduleList: scheduleType[];
 }>;
 
+interface API_getAllScheduleForSearch_request_type extends defaultApiRequestType {
+}
+
+type API_getAllScheduleForSearch_response_type = defaultApiResponseType<{
+  scheduleList: scheduleType[];
+}>;
+
 interface API_deleteSchedule_request_type extends defaultApiRequestType {
   schedule_id: number;
 }

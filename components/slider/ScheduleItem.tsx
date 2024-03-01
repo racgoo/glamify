@@ -21,12 +21,16 @@ import { calendarAtom, requestSetCalendarItem } from "../../recoil/recoil";
 import { useRecoilValue } from "recoil";
 import printDate from "../../modules/time/printDate";
 import hashStringToRGB from "../../modules/rgb/hashStringToRGB";
+import repetitionTypeJSON from "../../assets/json/repetitionTypeJSON";
+import repetitionDayJSON from "../../assets/json/repetitionDayJSON";
 
 interface ScheduleItemProps {
   onPress: (schedule: scheduleType) => void;
   onDelete: (schedule: scheduleType) => void;
   schedule: scheduleType;
   isChecked: boolean;
+  isNeedChecked?: boolean;
+  isNeedDetail?: boolean;
   isInterval: boolean;
 }
 
@@ -35,7 +39,9 @@ const ScheduleItem = ({
   onDelete,
   schedule,
   isChecked,
-  isInterval
+  isNeedChecked = true,
+  isNeedDetail = false,
+  isInterval,
 }: ScheduleItemProps): JSX.Element => {
   const siwperRef: React.LegacyRef<Swiper> = useRef(null);
   const calendarReocilValue = useRecoilValue(calendarAtom);
@@ -63,44 +69,70 @@ const ScheduleItem = ({
               borderColor: hashStringToRGB(schedule.title),
               flexDirection: "column",
               justifyContent: "center",
-              alignItems: "flex-start"
+              alignItems: "flex-start",
             },
           ]}
           onPress={() => {
             onPress(schedule);
           }}
         >
-          <View style={{flexDirection: "row", justifyContent: "space-between",width: "100%",paddingRight: 20}} >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              width: "100%",
+              paddingRight: 20,
+            }}
+          >
             <CommonText
-              text={isChecked ? "(완료)" : "(미완료)"}
+              text={isNeedChecked ? (isChecked ? "(완료)" : "(미완료)") : ""}
               type="Title3B18"
               color={colors.gray.GR750}
-              style={{marginLeft: 20}}
+              style={{ marginLeft: 20 }}
             />
             <CommonText
-              text={isInterval ? "(반복)" : ""}
+              text={
+                isInterval
+                  ? isNeedDetail
+                    ? schedule.repeat_type !== "ONCE"
+                      ? (repetitionTypeJSON[schedule.repeat_type] + "반복"+(
+                        schedule.repeat_type==="WEEKLY" ? (`(${schedule.weekly_days_mask.split("").reduce((acc: string[],cur,index) => {
+                          if(cur==="1"){
+                            acc.push(repetitionDayJSON[index])
+                          }
+                          return acc;
+                        } ,[]).join("")})`) : ""
+                      ))
+                      : ""
+                    : "반복"
+                  : ""
+              }
               type="Title3B18"
               color={colors.gray.GR750}
-              style={{marginLeft: 20}}
+              style={{ marginLeft: 20 }}
             />
           </View>
           <CommonText
             text={schedule.title}
             type="Title3B18"
             color={colors.gray.GR750}
-            style={{marginLeft: 20}}
+            style={{ marginLeft: 20 }}
           />
           <CommonText
             text={schedule.description}
             type="Body4B14"
             color={colors.gray.GR750}
-            style={{marginLeft: 20}}
+            style={{ marginLeft: 20 }}
           />
           <CommonText
-            text={printDate(schedule.due_date,"short")}
+            text={
+              isNeedDetail
+                ? "등록일:" + printDate(schedule.due_date, "long")
+                : printDate(schedule.due_date, "short")
+            }
             type="Body3S15"
             color={colors.gray.GR750}
-            style={{marginLeft: 20}}
+            style={{ marginLeft: 20 }}
           />
         </TouchableOpacity>
         <View style={[styles.slide]}>
@@ -147,7 +179,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: "hidden",
     borderWidth: 2,
-    alignItems: "center"
+    alignItems: "center",
   },
 });
 

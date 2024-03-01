@@ -1,6 +1,6 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Link, Tabs, useGlobalSearchParams, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DeviceEventEmitter, Pressable, View, useColorScheme } from 'react-native';
 import router from '../../references/router';
 import { router as expoRouter } from "expo-router";
@@ -21,6 +21,7 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const params = serializeParams(useLocalSearchParams()) as routeType["MainTabs"];
+  const [currentTab,setCurrentTab] = useState("");
   useEffect(()=>{
     if(params.tabPathname){
       expoRouter.push(`/MainTabs/${params.tabPathname}`);
@@ -37,9 +38,11 @@ export default function TabLayout() {
       }}
       screenListeners={{
         tabPress: (event) => {
-          DeviceEventEmitter.emit("scrollUp",{
-            tabName: event.target?.split("-")[0]
-          });
+          let shortTabName = event.target?.split("-")[0] ?? "";
+          if(shortTabName===currentTab){
+            DeviceEventEmitter.emit(event.target?.split("-")[0] ?? "",{});
+          }
+          setCurrentTab(shortTabName);
         }
       }}
     >

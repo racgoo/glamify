@@ -66,9 +66,6 @@ function Home() {
   return (
     <RenderSafeAreaView isNeedTouchableWithoutFeedback={true} >
       <View style={styles.mainContainer}>
-        <View style={{borderWidth: 1}} >
-          <CommonTextInput hideEraser={true} isNumberPad={true} text={test} setText={setTest} />
-        </View>
 
         {/* <View style={{ width: "100%",backgroundColor: "red", gap: 20, flexDirection: "row", flexWrap: "wrap"}} >
           {
@@ -80,7 +77,7 @@ function Home() {
 
 
         <CommonText
-          text={momentToUtcString(moment("2024-02-13"))}
+          text={"메인 화면."}
           color={colors.gray.GR800}
           type="Title1B24"
          /> 

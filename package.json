@@ -33,6 +33,7 @@
     "expo": "~49.0.15",
     "expo-background-fetch": "~11.3.0",
     "expo-constants": "~14.4.2",
+    "expo-device": "~5.4.0",
     "expo-font": "~11.4.0",
     "expo-linking": "~5.0.2",
     "expo-notifications": "~0.20.1",
@@ -44,12 +45,14 @@
     "expo-web-browser": "~12.3.2",
     "i": "^0.3.7",
     "moment": "^2.29.4",
+    "moment-timezone": "^0.5.45",
     "npm": "^10.4.0",
     "patch-package": "^8.0.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.72.6",
     "react-native-calendars": "^1.1303.0",
+    "react-native-dropdown-picker": "^5.4.6",
     "react-native-gesture-handler": "~2.12.0",
     "react-native-global-props": "^1.1.5",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
@@ -64,8 +67,7 @@
     "react-native-webview": "13.2.2",
     "react-query": "^3.39.3",
     "recoil": "^0.7.7",
-    "recoil-nexus": "^0.5.0",
-    "expo-device": "~5.4.0"
+    "recoil-nexus": "^0.5.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

@@ -3,6 +3,7 @@ import {
   FlatList,
   Keyboard,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -13,13 +14,19 @@ import RenderSafeAreaView from "../../components/layout/RenderSafeAreaView";
 import router from "../../references/router";
 import { View } from "react-native";
 import {
+  API_getAllScheduleForSearch,
   API_getCalendarList,
   API_getSchedule,
   API_healthCheck,
   API_searchSchedule,
 } from "../../controller/api";
 import { useQuery } from "@tanstack/react-query";
-import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "react";
 import { useFocusEffect } from "expo-router";
 import CommonTextInput from "../../components/text/CommonTextInput";
 import colors from "../../styles/colors";
@@ -35,7 +42,12 @@ import { calendarAtom } from "../../recoil/recoil";
 import setCurrentCalendar from "../../action/calendar/setCurrentCalendar";
 import Spinner from "../../assets/animation/Spinner";
 import setSelectedScheduleWithInfoList from "../../action/schedule/setSelectedScheduleWithInfoList";
+import ScheduleItem from "../../components/slider/ScheduleItem";
+import requestDeleteSchedule from "../../action/schedule/requestDeleteSchedule";
+import requestLoadingClose from "../../action/loading/requestLoadingClose";
+import requestPopupOpen from "../../action/popup/requestPopupOpen";
 function Calendar() {
+  
   const [searchText, setSearchText] = useState<string>("");
   const [moveKeyDate, setMoveKeyDate] = useState(moment().format("YYYY-MM-DD"));
   const [isFocusOnInput, setIsFocusOnInput] = useState(false);
@@ -43,30 +55,43 @@ function Calendar() {
 
   const getCalendarListQuery = useQuery({
     queryKey: ["API_getCalendarList"],
-    queryFn: () => API_getCalendarList({}).then(res=>res.data),
+    queryFn: () => API_getCalendarList({}).then((res) => res.data),
   });
   const isCalenderListLoading = getCalendarListQuery.isLoading;
   const calenderListResult = getCalendarListQuery.data;
+  const [dynamicCalendarUpdateCount,setDynamicCalendarUpdateCount] = useState(0);
 
-  const searchScheduleQuery = useQuery({
-    queryKey: ["API_searchSchedule",calendarReocilValue.currentCalendar?.calendar_id],
-    queryFn: () => API_searchSchedule({title: searchText, calendar_id: calendarReocilValue.currentCalendar?.calendar_id}).then(res=>res.data),
+  const getAllScheduleForSearchQuery = useQuery({
+    queryKey: ["API_getAllScheduleForSearch"],
+    queryFn: () => API_getAllScheduleForSearch({}).then((res) => res.data),
+    initialData: { code: 200, message: "", data: { scheduleList: [] } },
     enabled: false
   });
+  const isAllScheduleForSearchLoading = getAllScheduleForSearchQuery.isLoading;
+  const allScheduleForSearchResult = getAllScheduleForSearchQuery.data;
 
-  const isSearchScheduleLoading = searchScheduleQuery.isLoading;
-  const searchScheduleResult = searchScheduleQuery.data;
-  
-  useFocusEffect(
-    useCallback(() => {
-      if(calendarReocilValue.currentCalendar?.calendar_id)searchScheduleQuery.refetch();
-    }, [searchText,calendarReocilValue.currentCalendar?.calendar_id])
-  );
-  
+  useEffect(()=>{
+    DeviceEventEmitter.addListener("Calendar",(data) => {
+      resetMoveKeyDate();
+    })
+  },[]);
+
+  // useEffect(() => {
+  //   console.log(JSON.stringify(allScheduleForSearchResult));
+  // }, [allScheduleForSearchResult]);
+
+  const resetMoveKeyDate = () => {
+    requestLoadingOpen();
+    setMoveKeyDate(moment().format("YYYY-MM-DD"));
+    setTimeout(()=>{
+      requestLoadingClose();
+    },800);
+  }
+
   useEffect(() => {
     if (
       isCalenderListLoading === false &&
-      calenderListResult?.data?.calendarList !==undefined &&
+      calenderListResult?.data?.calendarList !== undefined &&
       calenderListResult?.data?.calendarList.length !== 0 &&
       calendarReocilValue.currentCalendar === null
     ) {
@@ -95,12 +120,17 @@ function Calendar() {
     });
   };
 
-  const handleOpenDetailModal = (date: string,selectedScheduleWithInfoList: scheduleWithInfoType[]) => {
+  const handleOpenDetailModal = (
+    date: string,
+    selectedScheduleWithInfoList: scheduleWithInfoType[],
+    selectedCalendar?: calendarType | undefined
+  ) => {
     setSelectedScheduleWithInfoList(selectedScheduleWithInfoList);
     router.navigate({
       pathname: "Calendar/CalendarDetailModal",
       params: {
-        date
+        date,
+        selectedCalendar,
       } as routeType["Calendar/CalendarDetailModal"],
     });
   };
@@ -109,7 +139,10 @@ function Calendar() {
     router.navigate({ pathname: "Calendar/CreateCalendarModal" });
   };
 
-  if ( calenderListResult?.data?.calendarList!==undefined && calenderListResult?.data?.calendarList.length === 0)
+  if (
+    calenderListResult?.data?.calendarList !== undefined &&
+    calenderListResult?.data?.calendarList.length === 0
+  )
     return (
       <RenderSafeAreaView isNeedTouchableWithoutFeedback>
         <View
@@ -140,12 +173,14 @@ function Calendar() {
               placeholderTextColor={colors.gray.White}
               onFocus={() => {
                 setIsFocusOnInput(true);
+                getAllScheduleForSearchQuery.refetch();
               }}
               onBlur={() => {}}
               placeholder="검색어를 입력해주세요."
+              hideEraser={true}
             />
           </View>
-          {isFocusOnInput && (
+          {searchText!=="" && (
             <TouchableOpacity
               style={{
                 justifyContent: "center",
@@ -167,59 +202,53 @@ function Calendar() {
           )}
         </View>
 
-        {/* <View
+        <ScrollView
           style={{
             width: "100%",
             paddingHorizontal: 20,
             height: isFocusOnInput ? "auto" : 0,
-            overflow: "hidden",
+            overflow: "hidden"
           }}
         >
-          {
-            isSearchScheduleLoading 
-            ?
-              <Spinner />
-            : searchText === ""
-            ?
-              <View />
-            :
-            searchScheduleResult?.data?.scheduleList.map(schedule => (
-              <TouchableOpacity
-              key={schedule.calendar_id}
-               onPress={()=>{
-                handleOpenDetailModal(moment(schedule.due_date).format("YYYY-MM-DD"));
-              }}
-                style={{borderWidth: 1}}
-               >
-                <View style={{width: "100%", height: 1, backgroundColor: colors.gray.GR900}} />
-                <CommonText 
-                  text={moment(schedule.due_date).format("YYYY년 MM월 DD일 HH시 mm분")}
-                  type="Body1S16"
-                  color={colors.gray.GR800}
-                />
-                <CommonText 
-                  text={schedule.title}
-                  type="Body1S16"
-                  color={colors.gray.GR750}
-                />
-                <CommonText 
-                  text={schedule.description}
-                  type="Body1S16"
-                  color={colors.gray.GR750}
-                />
-                <CommonText 
-                  text={schedule.is_done ? "완료" : "미완료"}
-                  type="Body1S16"
-                  color={colors.gray.GR750}
-                />
-              </TouchableOpacity>
-            ))
-          }
-        </View> */}
+          {searchText !== "" &&
+            allScheduleForSearchResult.data?.scheduleList
+              ?.filter(
+                (schdule) =>
+                  schdule.title.includes(searchText) ||
+                  schdule.description.includes(searchText)
+              )
+              .map((schedule) => (
+                <View style={{height: 80,marginBottom: 10}} >
+                    <ScheduleItem
+                      onDelete={async()=>{
+                        requestLoadingOpen();
+                        requestPopupOpen({
+                          title: "정말 삭제하겠습니까?",
+                          description: "다시 복구하기 어렵습니다.",
+                          type: "both",
+                          action: async() => {
+                            await requestDeleteSchedule({schedule,refetchQueries: [getAllScheduleForSearchQuery]});
+                            setDynamicCalendarUpdateCount((pre) => pre+1);
+                          },
+                        });
+                      }}
+                      onPress={(schedule: scheduleType)=>{
+                        // handleCheckSchedule(schedule,index);
+                      }}
+                      schedule={schedule}
+                      isChecked={false}
+                      isNeedChecked={false}
+                      isNeedDetail={true}
+                      isInterval={schedule.repeat_type==="ONCE" ? false : true}
+                    />
+                </View>
+              ))}
+        </ScrollView>
 
-        <View style={{ height: isFocusOnInput ? 0 : "auto" }}>
+        <View style={{ height: searchText!=="" ? 0 : "auto" }}>
           {calendarReocilValue.currentCalendar && (
             <DynamicCalendar
+              updateCount={dynamicCalendarUpdateCount}
               moveKeyDate={moveKeyDate}
               setMoveKeyDate={setMoveKeyDate}
               handleClick={handleOpenDetailModal}

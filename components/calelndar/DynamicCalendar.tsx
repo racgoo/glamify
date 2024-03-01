@@ -1,5 +1,5 @@
 import moment from "moment";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   FlatList,
   FlatListComponent,
@@ -33,6 +33,8 @@ import { useRecoilValue } from "recoil";
 import { calendarAtom, scheduleAtom } from "../../recoil/recoil";
 import setSelectedDate from "../../action/calendar/setSelectedDate";
 import setSelectedScheduleWithInfoList from "../../action/schedule/setSelectedScheduleWithInfoList";
+import utcStringToMoment from "../../modules/time/utcStringToMoment";
+import repetitionDayJSON from "../../assets/json/repetitionDayJSON";
 
 interface DynamicCalendarProps {
   handleClick: (date: string, selectedScheduleWithInfoList: scheduleWithInfoType[]) => void;
@@ -42,18 +44,20 @@ interface DynamicCalendarProps {
   currentCalendar: calendarType;
   calendarList?: string[]
   handleFilter?: (monthDate: string)=>void;
+  updateCount?: number;
 }
 const DynamicCalendar = ({
   handleClick,
   moveKeyDate,
   setMoveKeyDate,
   currentCalendar,
+  updateCount = 0,
   handleFilter = () => {}
 }: DynamicCalendarProps) => {
 
   const { selectedDate } = useRecoilValue(calendarAtom);;
   const flatListRef = useRef<FlatList>(null);
-  const calendarListRef = useRef<any>(null);
+  const calendarListRef = useRef<typeof CalendarList>(null);
   const [isReady, setIsReady] = useState(false);
   const [monthDate, setmonthDate] = useState(moment().format("YYYY-MM-DD"));
   const [markedDates,setMarkedDates] = useState<markType>({});
@@ -65,13 +69,17 @@ const DynamicCalendar = ({
       target_date: momentToUtcString(moment(monthDate))
     }).then(res=>res.data),
   });
-
+  
   useEffect(()=>{
     getScheduleQuery.refetch();
-  },[monthDate,currentCalendar]);
+  },[monthDate,currentCalendar,updateCount]);
 
   const isScheduleLoading = getScheduleQuery.isLoading;
   const scheduleResult =  getScheduleQuery.data;
+
+  useEffect(()=>{
+    // console.log(JSON.stringify(scheduleResult?.data?.scheduleList))
+  },[scheduleResult]);
 
   useEffect(()=>{
     if(scheduleResult?.data?.scheduleList){
@@ -79,9 +87,6 @@ const DynamicCalendar = ({
       if(selectedDate && newMarkedDates[selectedDate]){
         setSelectedScheduleWithInfoList(dotsToScheduleWithInfoList(newMarkedDates[selectedDate].dots));
       }
-      // if(selectedDate){
-      //   selectedDate
-      // }
       setMarkedDates(newMarkedDates);
     }
   },[scheduleResult?.data?.scheduleList]);
@@ -91,8 +96,8 @@ const DynamicCalendar = ({
   // },[scheduleResult]);
   LocaleConfig.locales["kr"] = {
     monthNames: new Array(12).fill(null).map((_, index) => `${index + 1}월`),
-    dayNamesShort: ["일", "월", "화", "수", "목", "금", "토"],
-    dayNames: ["일", "월", "화", "수", "목", "금", "토", "일"].map(
+    dayNamesShort: repetitionDayJSON,
+    dayNames: repetitionDayJSON.map(
       (d) => d + "요일"
     ),
     today: "오늘",
@@ -244,7 +249,6 @@ const DynamicCalendar = ({
             </View>
           </View>,
           <CalendarList
-            
             ref={calendarListRef}
             onMonthChange={(event) => {
               setmonthDate(`${event.year}-${event.month}-01`);
