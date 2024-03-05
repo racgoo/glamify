@@ -75,6 +75,22 @@ type API_getCalendarList_response_type = defaultApiResponseType<{
   calendarList: calendarType[];
 }>;
 
+interface API_getCalendarLabelList_request_type extends defaultApiRequestType {
+  calendar_id: number;
+}
+
+type API_getCalendarLabelList_response_type = defaultApiResponseType<{
+  labelList: labelType[]
+}>;
+
+interface API_saveCalendarLabelList_request_type extends defaultApiRequestType {
+  labelList: labelType[]
+}
+
+type API_saveCalendarLabelList_response_type = defaultApiResponseType<{
+  // calendarList: calendarType[];
+}>;
+
 interface API_createCalendar_request_type extends defaultApiRequestType {
   calendarName: string;
 }
@@ -111,6 +127,7 @@ interface API_getSchedule_request_type extends defaultApiRequestType {
 
 type API_getSchedule_response_type = defaultApiResponseType<{
   scheduleList: scheduleType[];
+  specialDayList: specialDayType[];
 }>;
 
 interface API_getAllScheduleForSearch_request_type extends defaultApiRequestType {

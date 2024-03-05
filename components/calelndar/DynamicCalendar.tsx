@@ -77,13 +77,10 @@ const DynamicCalendar = ({
   const isScheduleLoading = getScheduleQuery.isLoading;
   const scheduleResult =  getScheduleQuery.data;
 
-  useEffect(()=>{
-    // console.log(JSON.stringify(scheduleResult?.data?.scheduleList))
-  },[scheduleResult]);
 
   useEffect(()=>{
     if(scheduleResult?.data?.scheduleList){
-      let newMarkedDates = transformScheduleToMarkData(scheduleResult?.data?.scheduleList);
+      let newMarkedDates = transformScheduleToMarkData(scheduleResult?.data?.scheduleList,scheduleResult.data.specialDayList);
       if(selectedDate && newMarkedDates[selectedDate]){
         setSelectedScheduleWithInfoList(dotsToScheduleWithInfoList(newMarkedDates[selectedDate].dots));
       }
@@ -92,8 +89,9 @@ const DynamicCalendar = ({
   },[scheduleResult?.data?.scheduleList]);
 
   // useEffect(()=>{
-  //   console.log(JSON.stringify(scheduleResult))
+  //   console.log(JSON.stringify(scheduleResult?.data?.specialDayList))
   // },[scheduleResult]);
+
   LocaleConfig.locales["kr"] = {
     monthNames: new Array(12).fill(null).map((_, index) => `${index + 1}월`),
     dayNamesShort: repetitionDayJSON,
@@ -128,11 +126,19 @@ const DynamicCalendar = ({
       >
     | undefined = ({ date,today, state, marking }) => {
     let isToday = (today===date?.dateString);
+    let isHoliday = false;
     let dots: dotType[] = marking?.dots as dotType[];
+    if(date?.timestamp && [0,6].includes(new Date(date.timestamp).getDay())){
+      isHoliday=true;
+    }
+    if(date?.dateString && markedDates[date?.dateString]?.isHoliday===true){
+      isHoliday=true;
+    }
+
     return (
       <TouchableOpacity
         activeOpacity={0.5}
-        style={{ width: "100%", height: 80,borderRadius: 8, borderWidth: 2, borderColor:  isToday ? colors.orange.OR500 : "#FFFFFF", paddingHorizontal: 1}}
+        style={{ width: "100%", height: 80,borderRadius: 2, borderWidth: 2, borderColor:  isToday ? colors.orange.OR500 : "#FFFFFF", paddingHorizontal: 1}}
         onPress={() => {
           let currentShortDate = date?.dateString as string;
           setSelectedDate(currentShortDate);
@@ -142,7 +148,7 @@ const DynamicCalendar = ({
         <View style={{ alignItems: "center" }}>
           <CommonText
             text={date?.day.toString()}
-            color={state === "disabled" ? colors.gray.GR300 : colors.gray.GR700}
+            color={state === "disabled" ? colors.gray.GR300 :  isHoliday ? colors.red.Red300 : colors.gray.GR700}
             type="Body5S14"
           />
           {marking &&
@@ -154,7 +160,7 @@ const DynamicCalendar = ({
                   backgroundColor: dot.color,
                   paddingHorizontal: 5,
                   paddingVertical: 1,
-                  borderRadius: 20,
+                  borderRadius: 4,
                   marginBottom: 1,
                   paddingTop: 0,
                   paddingBottom: 0

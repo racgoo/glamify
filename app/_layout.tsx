@@ -14,7 +14,7 @@ import requestLoadingClose from "../action/loading/requestLoadingClose";
 import CommonText from "../components/text/CommonText";
 import colors from "../styles/colors";
 import PushMessageDeepLinking from "../components/dynamicModules/pushMessage/PushMessageDeepLinking";
-import * as Notifications from 'expo-notifications';
+import * as Notifications from "expo-notifications";
 LogBox.ignoreAllLogs(true);
 LogBox.ignoreLogs(["Warning: ..."]);
 
@@ -104,7 +104,7 @@ function RootLayoutNav() {
         options={{
           title: "일정 추가",
           headerShown: true,
-          presentation: "formSheet"
+          presentation: "formSheet",
         }}
       />
       <Stack.Screen
@@ -114,6 +114,18 @@ function RootLayoutNav() {
       <Stack.Screen
         name="Calendar/CreateCalendarModal"
         options={{ headerShown: false, presentation: "formSheet" }}
+      />
+      <Stack.Screen
+        name="Calendar/CalendarSettingModal"
+        options={{ title: "캘린더 설정", presentation: "formSheet" }}
+      />
+      <Stack.Screen
+        name="Calendar/CalendarLabelSettingModal"
+        options={{ title: "라벨 설정", presentation: "formSheet" }}
+      />
+      <Stack.Screen
+        name="Calendar/CalendarBackgroundImageSettingModal"
+        options={{ title: "배경화면 설정", presentation: "formSheet" }}
       />
     </Stack>
   );

@@ -7,8 +7,8 @@ import requestLogout from "../action/auth/requestLogout";
 import requestAuthByRefreshToken from "../action/auth/requestAuthByRefreshToken";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const backendUrl = "http://dating.batro.org:4000/";
-// export const backendUrl = "http://172.20.10.2:4000/";
+// export const backendUrl = "http://dating.batro.org:4000/";
+export const backendUrl = "http://172.20.10.2:4000/";
 // export const backendUrl = "http://192.168.35.7:4000/";
 // export const backendUrl = "http://192.168.35.7:4000/";
 
@@ -165,6 +165,18 @@ export const API_getSchedule = (
   return postRequest("schedule/getSchedule", data,{});
 };
 
+export const API_saveCalendarLabelList = (
+  data: API_saveCalendarLabelList_request_type
+): Promise<AxiosResponse<API_saveCalendarLabelList_response_type>> => {
+  return postRequest("calendar/saveCalendarLabelList", data,{});
+};
+
+export const API_getCalendarLabelList = (
+  data: API_getCalendarLabelList_request_type
+): Promise<AxiosResponse<API_getCalendarLabelList_response_type>> => {
+  return postRequest("calendar/getCalendarLabelList", data,{});
+};
+
 export const API_getAllScheduleForSearch = (
   data: API_getAllScheduleForSearch_request_type
 ): Promise<AxiosResponse<API_getAllScheduleForSearch_response_type>> => {
@@ -188,6 +200,8 @@ export const API_searchSchedule = (
 ): Promise<AxiosResponse<API_searchSchedule_response_type>> => {
   return postRequest("schedule/searchSchedule", data,{});
 };
+
+
 
 // export const API_tokenLogin = (data) => {
 //   return postRequest("auth/token/login",data);

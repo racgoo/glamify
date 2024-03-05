@@ -19,6 +19,7 @@ import BtnXLarge from "../button/BtnXLarge";
 import { setRecoil } from "recoil-nexus";
 import { calendarAtom, requestSetCalendarItem } from "../../recoil/recoil";
 import { useRecoilValue } from "recoil";
+import router from "../../references/router";
 
 interface CalendarItemProps {
   onPress: (calendar: calendarType) => void;
@@ -31,12 +32,19 @@ const CalendarItem = ({
   onDelete,
   calendar,
 }: CalendarItemProps): JSX.Element => {
+
   const siwperRef: React.LegacyRef<Swiper> = useRef(null);
   const calendarReocilValue = useRecoilValue(calendarAtom);
+
   const goBack = () => {
     siwperRef.current?.scrollTo(0);
   };
   const isSelected = calendarReocilValue.currentCalendar?.calendar_id ===calendar.calendar_id;
+
+  const goSetting = () => {
+    goBack();
+    router.navigate({pathname: "Calendar/CalendarSettingModal",params: {calendar}});
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -72,10 +80,20 @@ const CalendarItem = ({
         <View style={[styles.slide]}>
           <TouchableOpacity
             onPress={goBack}
-            style={{ width: 100, height: "100%", backgroundColor: "#000000" }}
+            style={{ width: "30%", height: "100%", backgroundColor: "#000000" }}
           >
             <CommonText
               text={"<- 뒤로가기"}
+              type="Body1S16"
+              color={colors.gray.GR750}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={goSetting}
+            style={{ width: 100, height: "100%", backgroundColor: "#000000" }}
+          >
+            <CommonText
+              text={"설정"}
               type="Body1S16"
               color={colors.gray.GR750}
             />

@@ -96,6 +96,10 @@ const CalendarDetailModal = () => {
     setSelectedScheduleWithInfoList(newData);
   };
 
+const deleteSpecialDate = (selectedScheduleWithInfoList: scheduleWithInfoType[]) => {
+  return selectedScheduleWithInfoList.filter(selectedScheduleWithInfo => selectedScheduleWithInfo.schedule.due_date!=="");
+}
+
   const handleCheckSchedule = (
     scheduleWithInfo: scheduleWithInfoType,
     index: number
@@ -155,7 +159,7 @@ const CalendarDetailModal = () => {
           showsVerticalScrollIndicator={false}
           horizontal={false}
           style={{ width: "100%" }}
-          data={selectedScheduleWithInfoList}
+          data={deleteSpecialDate(selectedScheduleWithInfoList)}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
           keyExtractor={(_, index) => String(index)}
           contentContainerStyle={{
