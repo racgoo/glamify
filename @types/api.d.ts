@@ -91,6 +91,14 @@ type API_saveCalendarLabelList_response_type = defaultApiResponseType<{
   // calendarList: calendarType[];
 }>;
 
+interface API_deleteCalendarLabel_request_type extends defaultApiRequestType {
+  label: labelType
+}
+
+type API_deleteCalendarLabel_response_type = defaultApiResponseType<{
+  // calendarList: calendarType[];
+}>;
+
 interface API_createCalendar_request_type extends defaultApiRequestType {
   calendarName: string;
 }
@@ -114,6 +122,7 @@ interface API_createSchedule_request_type extends defaultApiRequestType {
   title: string
   weekly_days_mask: string
   interval_due_date: string
+  calendar_label_id: number
 }
 
 type API_createSchedule_response_type = defaultApiResponseType<{

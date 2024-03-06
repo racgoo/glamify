@@ -11,17 +11,16 @@ import RenderSafeAreaView from "../../components/layout/RenderSafeAreaView";
 import CommonText from "../../components/text/CommonText";
 import colors from "../../styles/colors";
 import CommonTextInput from "../../components/text/CommonTextInput";
-import {
-  Fragment,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from "moment";
 import { useLocalSearchParams, useNavigation } from "expo-router";
-import { API_createSchedule, API_getCalendarList, API_getSchedule } from "../../controller/api";
+import {
+  API_createSchedule,
+  API_getCalendarLabelList,
+  API_getCalendarList,
+  API_getSchedule,
+} from "../../controller/api";
 import { useRecoilValue } from "recoil";
 import { calendarAtom } from "../../recoil/recoil";
 import requestLoadingOpen from "../../action/loading/requestLoadingOpen";
@@ -35,6 +34,7 @@ import BtnXLarge from "../../components/button/BtnXLarge";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import CommonDropPicker from "../../components/picker/CommonDropPicker";
 import repetitionTypeJSON from "../../assets/json/repetitionTypeJSON";
+import CommonLabelSelectBox from "../../components/picker/CommonLabelSelectBox";
 
 const dayList = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -85,18 +85,24 @@ const CreateScheduleModal = () => {
 
   const getCalendarListQuery = useQuery({
     queryKey: ["API_getCalendarList"],
-    queryFn: () => API_getCalendarList({}).then(res=>res.data),
-    enabled: false
+    queryFn: () => API_getCalendarList({}).then((res) => res.data),
+    enabled: false,
   });
+
+  
+
   let calendarList = getCalendarListQuery.data?.data?.calendarList ?? [];
 
-  const [selectedCalendar,setSelectedCalendar] = useState(calendarRecoilValue.currentCalendar?.calendar_id ?? 0);
+  const [selectedCalendar, setSelectedCalendar] = useState(
+    calendarRecoilValue.currentCalendar?.calendar_id ?? 0
+  );
   const [newScheduleTitle, setNewScheduleTitle] = useState("");
   const [newSchedulePlace, setNewSchedulePlace] = useState("");
   const [newScheduleDescription, setNewScheduleDescription] = useState("");
   const [newScheduleUTCString, setNewScheduleUTCString] = useState(
     new Date(date)
   );
+  const [selectedLabel, setSelectedLabel] = useState<labelType | null>(null);
   const [isVisibleDateModal, setIsVisibleDateModal] = useState(false);
   const [isVisibleIntervalDateModal, setIsVisibleIntervalDateModal] =
     useState(false);
@@ -113,8 +119,37 @@ const CreateScheduleModal = () => {
     setNewScheduleEndRepetitionUTCString,
   ] = useState<null | Date>(null);
 
+
+  const getCalendarLabelListQuery = useQuery({
+    queryKey: [
+      "API_getCalendarLabelList",
+      selectedCalendar,
+    ],
+    queryFn: () =>
+      API_getCalendarLabelList({
+        calendar_id: selectedCalendar,
+      }).then((res) => res.data),
+    initialData: { code: 200, message: "", data: { labelList: [] } },
+  });
+  const isCalendarLabelListLoading = getCalendarLabelListQuery.isLoading;
+  const calendarLabelListResult = getCalendarLabelListQuery.data;
+
+  useEffect(() => {
+    if (
+      isCalendarLabelListLoading === false &&
+      calendarLabelListResult.data?.labelList.length
+    ) {
+      setSelectedLabel(calendarLabelListResult.data.labelList[0]);
+    }
+  }, [isCalendarLabelListLoading, calendarLabelListResult]);
+  
+  useEffect(()=>{
+    getCalendarLabelListQuery.refetch();
+  },[selectedCalendar]);
+
   useLayoutEffect(() => {
-    let isInValidForSave = newScheduleTitle.length === 0 || selectedCalendar === 0;
+    let isInValidForSave =
+      newScheduleTitle.length === 0 || selectedCalendar === 0;
     let textColor = isInValidForSave ? colors.gray.GR500 : colors.gray.GR900;
     navigation.setOptions({
       headerRight: () => (
@@ -123,21 +158,37 @@ const CreateScheduleModal = () => {
         </TouchableOpacity>
       ),
     });
-  }, [newScheduleTitle, newScheduleDescription, newScheduleUTCString,newSchedulePlace,isRepetition,repetitionType,repetitionInterval,weeklyDayMask,newScheduleEndRepetitionUTCString,selectedCalendar]);
+  }, [
+    newScheduleTitle,
+    newScheduleDescription,
+    newScheduleUTCString,
+    newSchedulePlace,
+    isRepetition,
+    repetitionType,
+    repetitionInterval,
+    weeklyDayMask,
+    newScheduleEndRepetitionUTCString,
+    selectedCalendar,
+  ]);
 
   const handleSave = async () => {
     Keyboard.dismiss();
     requestLoadingOpen();
     API_createSchedule({
       calendar_id: selectedCalendar,
-      title: isValidHHMM(newScheduleTitle.substr(0, 4)) ? newScheduleTitle.substr(4) : newScheduleTitle,
+      title: isValidHHMM(newScheduleTitle.substr(0, 4))
+        ? newScheduleTitle.substr(4)
+        : newScheduleTitle,
       description: newScheduleDescription,
       due_date: momentToUtcString(moment(newScheduleUTCString)),
       place: newSchedulePlace,
       repeat_type: isRepetition ? repetitionType : "ONCE",
       interval_num: parseInt(repetitionInterval),
       weekly_days_mask: weeklyDayMask,
-      interval_due_date: newScheduleEndRepetitionUTCString ? momentToUtcString(moment(newScheduleEndRepetitionUTCString)) : "" 
+      interval_due_date: newScheduleEndRepetitionUTCString
+        ? momentToUtcString(moment(newScheduleEndRepetitionUTCString))
+        : "",
+      calendar_label_id: selectedLabel?.calendar_label_id ?? -1,
     })
       .then(async (res) => {
         let { code, data } = res.data;
@@ -197,18 +248,17 @@ const CreateScheduleModal = () => {
           // keyboardVerticalOffset={120}
         >
           <ScrollView style={{ flex: 1, width: "100%", paddingHorizontal: 20 }}>
-            {
-              calendarRecoilValue.currentCalendar?.calendar_id === 0 &&
-              <CommonDropPicker 
-                items={calendarList.map(calendar => ({
+            {calendarRecoilValue.currentCalendar?.calendar_id === 0 && (
+              <CommonDropPicker
+                items={calendarList.map((calendar) => ({
                   value: calendar.calendar_id,
-                  label: calendar.title
+                  label: calendar.title,
                 }))}
                 value={selectedCalendar}
                 setValue={setSelectedCalendar}
-                style={{marginVertical: 10}} 
+                style={{ marginVertical: 10 }}
               />
-            }
+            )}
             <View style={[styles.inputBoxContainer]}>
               <View style={styles.inputBox}>
                 <CommonTextInput
@@ -246,6 +296,21 @@ const CreateScheduleModal = () => {
             </View>
 
             <View style={{ height: 10 }} />
+            {/* allScheduleForSearchResult */}
+            {selectedLabel && (
+              <Fragment>
+                <View style={[styles.inputBoxContainer]}>
+                  <View style={[styles.inputRowContainer]}>
+                    <CommonLabelSelectBox
+                      item={selectedLabel}
+                      setItem={setSelectedLabel}
+                      itemList={calendarLabelListResult.data?.labelList ?? []}
+                    />
+                  </View>
+                </View>
+                <View style={{ height: 10 }} />
+              </Fragment>
+            )}
 
             <View style={[styles.inputBoxContainer]}>
               <View style={[styles.inputRowContainer]}>

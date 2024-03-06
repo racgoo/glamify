@@ -55,6 +55,8 @@ type scheduleType = {
   interval_due_date: string | null;
   interval_num: number;
   schedule_infos?: scheduleInfoType[];
+  label?: labelType;
+  calendar_label_id: number;
 };
 
 type scheduleInfoType = {

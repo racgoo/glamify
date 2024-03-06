@@ -65,14 +65,14 @@ const CalendarDetailModal = () => {
         <SettingBox
           value={alertSwitch}
           setValue={setAlertSwitch}
-          title="알림"
+          title="알림(미구현)"
         />
         <View style={styles.divider} />
         <SettingBox title="라벨" onPress={() => {
           router.navigate({pathname: "Calendar/CalendarLabelSettingModal", params: {calendar: calendar}});
         }} />
         <View style={styles.divider} />
-        <SettingBox title="배경화면" onPress={() => {
+        <SettingBox title="배경화면(미구현)" onPress={() => {
           router.navigate({pathname: "Calendar/CalendarBackgroundImageSettingModal"});
         }} />
       </View>

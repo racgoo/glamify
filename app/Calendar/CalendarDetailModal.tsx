@@ -13,6 +13,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   API_checkSchedule,
   API_deleteSchedule,
+  API_getCalendarLabelList,
   API_getSchedule,
 } from "../../controller/api";
 import momentToUtcString from "../../modules/time/momentToUtcString";
@@ -56,6 +57,26 @@ const CalendarDetailModal = () => {
   });
 
   const scheduleResult = getScheduleQuery.data;
+
+  const getCalendarLabelListQuery = useQuery({
+    queryKey: [
+      "API_getCalendarLabelList",
+      calendarRecoilValue.currentCalendar?.calendar_id,
+    ],
+    queryFn: () =>
+      API_getCalendarLabelList({
+        calendar_id: calendarRecoilValue.currentCalendar?.calendar_id as number,
+      }).then((res) => res.data),
+    initialData: { code: 200, message: "", data: { labelList: [] } },
+    enabled: false
+  });
+
+  useEffect(()=>{
+    if(calendarRecoilValue.currentCalendar?.calendar_id !==0){
+      getCalendarLabelListQuery.refetch();
+    }
+  },[]);
+
   // const scheduleList =  scheduleResult?.data?.scheduleList.filter(schedule => checkIsSameDay(schedule.due_date,moment.utc(date)));
 
   const handleDeleteModalOpen = (schedule: scheduleType, index: number) => {

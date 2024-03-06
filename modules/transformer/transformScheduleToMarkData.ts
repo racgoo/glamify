@@ -3,6 +3,7 @@ import hashStringToRGB from "../rgb/hashStringToRGB";
 import utcStringToMoment from "../time/utcStringToMoment";
 import makeDummySchedule from "../data/makeDummySchedule";
 import makeDummyScheduleInfo from "../data/makeDummyScheduleInfo";
+import colors from "../../styles/colors";
 
 const transformScheduleToMarkData = (
   scheduleList: scheduleType[],
@@ -22,7 +23,7 @@ const transformScheduleToMarkData = (
       result[dueDate].dots.push({
         key: schedule.title,
         description: schedule.description,
-        color: hashStringToRGB(schedule.title),
+        color: schedule.label?.color ?? colors.gray.GR400,
         schedule: schedule,
         currentDateScheduleInfo: info,
         isSpecialDay: false

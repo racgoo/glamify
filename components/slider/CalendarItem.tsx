@@ -88,32 +88,38 @@ const CalendarItem = ({
               color={colors.gray.GR750}
             />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={goSetting}
-            style={{ width: 100, height: "100%", backgroundColor: "#000000" }}
-          >
-            <CommonText
-              text={"설정"}
-              type="Body1S16"
-              color={colors.gray.GR750}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              onDelete(calendar);
-            }}
-            style={{
-              width: 100,
-              height: "100%",
-              backgroundColor: colors.orange.OR300,
-            }}
-          >
-            <CommonText
-              text={"삭제"}
-              type="Body1S16"
-              color={colors.gray.GR750}
-            />
-          </TouchableOpacity>
+          {
+            calendar.calendar_id!==0 &&
+            <Fragment>
+
+              <TouchableOpacity
+                onPress={goSetting}
+                style={{ width: 100, height: "100%", backgroundColor: "#000000" }}
+              >
+                <CommonText
+                  text={"설정"}
+                  type="Body1S16"
+                  color={colors.gray.GR750}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  onDelete(calendar);
+                }}
+                style={{
+                  width: 100,
+                  height: "100%",
+                  backgroundColor: colors.orange.OR300,
+                }}
+              >
+                <CommonText
+                  text={"삭제"}
+                  type="Body1S16"
+                  color={colors.gray.GR750}
+                />
+              </TouchableOpacity>
+            </Fragment>
+          }
         </View>
       </Swiper>
     </View>

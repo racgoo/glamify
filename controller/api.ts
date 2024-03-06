@@ -171,6 +171,12 @@ export const API_saveCalendarLabelList = (
   return postRequest("calendar/saveCalendarLabelList", data,{});
 };
 
+export const API_deleteCalendarLabel = (
+  data: API_deleteCalendarLabel_request_type
+): Promise<AxiosResponse<API_deleteCalendarLabel_response_type>> => {
+  return postRequest("calendar/deleteCalendarLabel", data,{});
+};
+
 export const API_getCalendarLabelList = (
   data: API_getCalendarLabelList_request_type
 ): Promise<AxiosResponse<API_getCalendarLabelList_response_type>> => {

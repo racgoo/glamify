@@ -88,9 +88,6 @@ const DynamicCalendar = ({
     }
   },[scheduleResult?.data?.scheduleList]);
 
-  // useEffect(()=>{
-  //   console.log(JSON.stringify(scheduleResult?.data?.specialDayList))
-  // },[scheduleResult]);
 
   LocaleConfig.locales["kr"] = {
     monthNames: new Array(12).fill(null).map((_, index) => `${index + 1}월`),

@@ -53,7 +53,7 @@ const ScheduleItem = ({
     <View style={{ flex: 1 }}>
       <Swiper
         key={schedule.schedule_id}
-        style={{ height: 80 }}
+        style={{ height: 120 }}
         scrollEnabled
         showsHorizontalScrollIndicator={false}
         showsPagination={false}
@@ -86,9 +86,9 @@ const ScheduleItem = ({
           >
             <CommonText
               text={isNeedChecked ? (isChecked ? "(완료)" : "(미완료)") : ""}
-              type="Title3B18"
+              type="Body5S14"
               color={colors.gray.GR750}
-              style={{ marginLeft: 20 }}
+              style={{ marginLeft: 20, borderWidth: 2 }}
             />
             <CommonText
               text={
@@ -109,20 +109,29 @@ const ScheduleItem = ({
               }
               type="Title3B18"
               color={colors.gray.GR750}
-              style={{ marginLeft: 20 }}
+              style={{ marginLeft: 20, borderWidth: 2 }}
             />
           </View>
+          {
+            schedule.label &&
+            <CommonText
+              text={"라벨:"+(schedule.label.name ?? "없음")}
+              type="Caption1M12"
+              color={schedule.label.color ?? colors.gray.GR750}
+              style={{ marginLeft: 20, borderWidth: 2 }}
+            />  
+          }
           <CommonText
             text={schedule.title}
-            type="Title3B18"
+            type="Body6M14"
             color={colors.gray.GR750}
-            style={{ marginLeft: 20 }}
+            style={{ marginLeft: 20, borderWidth: 2 }}
           />
           <CommonText
             text={schedule.description}
             type="Body4B14"
             color={colors.gray.GR750}
-            style={{ marginLeft: 20 }}
+            style={{ marginLeft: 20, borderWidth: 2 }}
           />
           <CommonText
             text={
@@ -132,7 +141,7 @@ const ScheduleItem = ({
             }
             type="Body3S15"
             color={colors.gray.GR750}
-            style={{ marginLeft: 20 }}
+            style={{ marginLeft: 20, borderWidth: 2 }}
           />
         </TouchableOpacity>
         <View style={[styles.slide]}>
