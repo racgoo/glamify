@@ -31,7 +31,9 @@ android/
 ios/
 # local env files
 .env*.local
-
+.env
+eas.json
+app.json
 # typescript
 *.tsbuildinfo
 
